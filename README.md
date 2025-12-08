@@ -1,1 +1,1 @@
-# "Dyskont" is a simple store simulation written in cpp
+# "Dyskont" is a simple store simulation written in C
