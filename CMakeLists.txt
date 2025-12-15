@@ -20,5 +20,6 @@ add_executable(klient
 
 add_executable(dyskont
 		src/main.c
+		src/shared.c
 		src/wiadomosc.c
 )

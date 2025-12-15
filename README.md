@@ -6,13 +6,13 @@
 
 ### OpenSUSE Tumbleweed/Slowroll/Leap
 ```sh
-sudo zypper install git gh gcc cmake make
+sudo zypper install git gh gcc gcc-c++ cmake make
 sudo zypper install -t pattern devel_basis
 ```
 
 ### OpenSUSE MicroOS/Aeon/Kalpa
 ```sh
-sudo transactional-update run zypper install git gh gcc cmake make && zypper install -t pattern devel_basis
+sudo transactional-update run zypper install git gh gcc gcc-c++ cmake make && zypper install -t pattern devel_basis
 ```
 --- 
 ## Build

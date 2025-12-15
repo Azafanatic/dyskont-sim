@@ -1,10 +1,14 @@
+#include <unistd.h>
 #include "kierownik.h"
 #include "wiadomosc.h"
 
-void say_hello() {
+void przywitaj_sie() {
     msg(COL_MAGENTA, "Tu kierownik!\n");
 };
 
 int main() {
-    say_hello();
+    przywitaj_sie();
+    while (1) {
+        sleep(1);
+    }
 }

@@ -1,6 +1,6 @@
 #ifndef KIEROWNIK_H
 #define KIEROWNIK_H
 
-void say_hello();
+void przywitaj_sie();
 
 #endif

@@ -1,6 +1,6 @@
 #ifndef KLIENT_H
 #define KLIENT_H
 
-void say_hello();
+void przywitaj_sie();
 
 #endif

@@ -1,10 +1,14 @@
+#include <unistd.h>
 #include "klient.h"
 #include "wiadomosc.h"
 
-void say_hello() {
+void przywitaj_sie() {
     msg(COL_YELLOW, "Tu klient!\n");
 };
 
 int main() {
-    say_hello();
+    przywitaj_sie();
+    while (1) {
+        sleep(1);
+    }
 }
