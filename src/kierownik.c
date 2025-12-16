@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include "kierownik.h"
 #include "wiadomosc.h"
+#include "shared.h"
 
 void przywitaj_sie() {
     msg(COL_MAGENTA, "Tu kierownik!\n");
@@ -8,7 +9,4 @@ void przywitaj_sie() {
 
 int main() {
     przywitaj_sie();
-    while (1) {
-        sleep(1);
-    }
 }
