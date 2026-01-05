@@ -11,13 +11,13 @@ void wykonaj_prace(int semID, int kolejka_loggera_ID) {
     operacja_signal(semID);
 };
 
-pid_t pids[128];
-Semafory *shared;
+pid_t pids[MAX_KLIENCI];
+SHM *shared;
 
 int main(int argc, char *argv[]) {
 
     int shm_id = atoi(argv[1]);
-    shared = (Semafory *)shmat(shm_id, NULL, 0);
+    shared = (SHM *)shmat(shm_id, NULL, 0);
 
     for (int i = 0; i < 5; i++) {
         pids[i] = fork();

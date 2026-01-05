@@ -30,3 +30,21 @@ add_executable(dyskont
 		src/shared.c
 		src/wiadomosc.c
 )
+
+add_executable(kasa_samoobslugowa
+		src/kasa_samoobslugowa.c
+		src/shared.c
+		src/wiadomosc.c
+)
+
+add_executable(kasa_stacjonarna
+		src/kasa_stacjonarna.c
+		src/shared.c
+		src/wiadomosc.c
+)
+
+add_executable(obsluga
+		src/obsluga.c
+		src/shared.c
+		src/wiadomosc.c
+)

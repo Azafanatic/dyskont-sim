@@ -1,7 +1,9 @@
 #include <stdbool.h>
 #include <sys/shm.h>
 
-#define MAX_KLIENCI 100
+#define MAX_KLIENCI 128
+#define MIN_PRODUKTY 3
+#define MAX_PRODUKTY 10
 #define MAX_KASY_SAMOOBSLUGOWE 6
 #define MAX_KASY_STACJONARNE 2
 
@@ -49,8 +51,7 @@ typedef struct {
     int sem_zamykanie_kasy;
     int sem_raport;
     int logger_kolejka;
-} Semafory;
-
+} SHM;
 
 int utworz_semafor(int key);
 void usun_semafor(int semid);
