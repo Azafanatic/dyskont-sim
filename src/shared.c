@@ -3,31 +3,38 @@
 #include <stdlib.h>
 #include <sys/sem.h>
 #include <sys/msg.h>
+#include <errno.h>
 #include "shared.h"
 
 int utworz_semafor(int key) {
-    int semid = semget(key, 1, 0666 | IPC_CREAT);
-    if (semid == -1) {
+    int semID = semget(key, 1, 0666 | IPC_CREAT);
+    if (semID == -1) {
         exit(EXIT_FAILURE);
     }
-    semctl(semid, 0, SETVAL, 1);
-    return semid;
+    semctl(semID, 0, SETVAL, 1);
+    return semID;
 }
 
-void usun_semafor(int semid) {
-    semctl(semid, 0, IPC_RMID);
+void usun_semafor(int semID) {
+    semctl(semID, 0, IPC_RMID);
 }
 
-void operacja_wait(int semid) {
-    struct sembuf sb = {0, -1, 0};
-    if (semop(semid, &sb, 1) == -1) {
+void operacja_wait(int semID) {
+    struct sembuf sb = {0, -1, SEM_UNDO};
+
+    while (semop(semID, &sb, 1) == -1) {
+        if (errno == EINTR) continue;
+        perror("semop wait");
         exit(EXIT_FAILURE);
     }
 }
 
-void operacja_signal(int semid) {
-    struct sembuf sb = {0, 1, 0};
-    if (semop(semid, &sb, 1) == -1) {
+void operacja_signal(int semID) {
+    struct sembuf sb = {0, 1, SEM_UNDO};
+    while (semop(semID, &sb, 1) == -1) {
+        if(errno == EINTR) {
+            continue;
+        }
         exit(EXIT_FAILURE);
     }
 }

@@ -11,6 +11,6 @@ enum Color {
     COL_DEFAULT
 };
 
-void msg(enum Color color, const char *message);
+void zapisz_wiadomosc(enum Color color, const char *message);
 
 #endif

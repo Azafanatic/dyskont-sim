@@ -42,11 +42,15 @@ typedef struct {
     int kolejka;
 } Kasa;
 
-extern int sem_kolejka_samoobslugowa;
-extern int sem_kolejka_stacjonarna;
-extern int sem_otwieranie_kasy;
-extern int sem_zamykanie_kasy;
-extern int sem_raport;
+typedef struct {
+    int sem_kolejka_samoobslugowa;
+    int sem_kolejka_stacjonarna;
+    int sem_otwieranie_kasy;
+    int sem_zamykanie_kasy;
+    int sem_raport;
+    int logger_kolejka;
+} Semafory;
+
 
 int utworz_semafor(int key);
 void usun_semafor(int semid);

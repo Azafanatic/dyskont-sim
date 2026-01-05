@@ -3,7 +3,7 @@
 
 #include "wiadomosc.h"
 
-void msg(enum Color color, const char *message) {
+void zapisz_wiadomosc(enum Color color, const char *message) {
     const char *color_code = "\033[0m";
 
     switch (color) {
