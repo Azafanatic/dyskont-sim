@@ -9,7 +9,11 @@
 #include <sys/wait.h>
 #include "logger.h"
 
-static int kolejka_id = -1;
+int shm_kolejki_id;
+int shm_semafory_id;
+Kolejki *shm_kolejki;
+Semafory *shm_semafory;
+
 sig_atomic_t koniec = 0;
 
 void obsluga_sygnalu(int sig) {
@@ -24,24 +28,34 @@ int main() {
 
     mkdir("logi", 0755);
 
-    int shmid = shmget(SHM_KOLEJKA_LOG, sizeof(KolejkaLogger), IPC_CREAT | 0666);
-    if (shmid == -1) {
+    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), IPC_CREAT | 0666);
+    if (shm_kolejki_id == -1) {
         perror("shmget");
         exit(1);
     }
 
-    KolejkaLogger *shared_data = (KolejkaLogger *)shmat(shmid, NULL, 0);
-    if (shared_data == (void *)-1) {
+    Kolejki *shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
+    if (shm_kolejki == (void *)-1) {
         perror("shmat");
         exit(1);
     }
 
-    kolejka_id = msgget(MSQ_LOG_ID, IPC_CREAT | 0600);
+    int kolejka_id = msgget(MSQ_LOG_ID, IPC_CREAT | 0600);
     if (kolejka_id == -1) {
         exit(1);
     }
 
-    shared_data->kolejka_id = kolejka_id;
+    shm_kolejki->kol_logger = kolejka_id;
+
+    shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), 0666);
+    if (shm_semafory_id == -1) {
+        exit(1);
+    }
+
+    shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
+    if (shm_semafory == (void *)-1) {
+        exit(1);
+    }
 
     char sciezka[64];
     sprintf(sciezka, "logi/test.log");
@@ -85,9 +99,10 @@ int main() {
     }
 
     close(deskryptor_pliku);
+
     msgctl(kolejka_id, IPC_RMID, NULL);
-    shmdt(shared_data);
-    shmctl(shmid, IPC_RMID, NULL);
+    shmdt(shm_kolejki);
+    shmctl(shm_kolejki_id, IPC_RMID, NULL);
 
     exit(0);
 }

@@ -15,8 +15,11 @@
 #define SEM_ID_OTWIERANIE_KASY 6843
 #define SEM_ID_ZAMYKANIE_KASY 6844
 #define SEM_ID_RAPORT 6845
+#define SEM_ID_KOLEJKA_LOGGER 6846
+#define SEM_ID_SKLEP_DANE 6847
 
-#define SHM_KOLEJKA_LOG 4581
+#define SHM_SEMAFORY 4581
+#define SHM_KOLEJKI 4582
 
 typedef enum {
     LOG_INFO,
@@ -41,10 +44,6 @@ struct Log {
 };
 
 typedef struct {
-    int kolejka_id;
-} KolejkaLogger;
-
-typedef struct {
     int id;
     int liczba_produktow;
     bool ma_alkohol;
@@ -63,14 +62,26 @@ typedef struct {
     int sem_otwieranie_kasy;
     int sem_zamykanie_kasy;
     int sem_raport;
-    int logger_kolejka;
-} SHM;
+    int sem_kolejka_logger;
+    int sem_sklep_dane;
+} Semafory;
+
+typedef struct {
+    int ilosc_klientow;
+    bool stan_sklepu;
+} Dane;
+
+typedef struct {
+    int kol_logger;
+    int kol_kasy_samoobslugowe;
+    int kol_kasy_stacjonarne;
+} Kolejki;
 
 int utworz_semafor(int key);
 void usun_semafor(int semid);
 void operacja_wait(int semid);
 void operacja_signal(int semid);
-void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_id);
+void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_id, int semafor_logger);
 
 void zapisz_wiadomosc(KolorWiadomosci color, const char *message);
 

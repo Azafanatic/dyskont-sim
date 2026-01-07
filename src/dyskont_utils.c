@@ -41,18 +41,20 @@ void operacja_signal(int semID) {
     }
 }
 
-void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_id) {
-    if (kolejka_id == -1) return;
+void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_logger_id, int semafor_logger) {
+    if (kolejka_logger_id == -1) return;
 
-    struct Log msg;
-    msg.typ_komunikatu = 1;
-    msg.typ_logu = typ_logu;
-    strncpy(msg.wiadomosc, format, 255);
-    msg.wiadomosc[255] = '\0';
+    operacja_wait(semafor_logger);
+        struct Log msg;
+        msg.typ_komunikatu = 1;
+        msg.typ_logu = typ_logu;
+        strncpy(msg.wiadomosc, format, 255);
+        msg.wiadomosc[255] = '\0';
 
-    if (msgsnd(kolejka_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
-        perror("Blad msgsnd");
-    }
+        if (msgsnd(kolejka_logger_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
+            perror("Blad msgsnd");
+        }
+    operacja_signal(semafor_logger);
 }
 
 void zapisz_wiadomosc(KolorWiadomosci color, const char *message) {
