@@ -1,15 +1,8 @@
 #include <unistd.h>
 #include <stdlib.h>
-#include "klient.h"
-#include "shared.h"
-#include "wiadomosc.h"
+#include "dyskont_utils.h"
 
-void wykonaj_prace(int semID, int kolejka_loggera_ID) {
-    operacja_wait(semID);
-    zapisz_log(LOG_OSTRZEZENIE, "Tu klient!\n", kolejka_loggera_ID);
-    sleep(1);
-    operacja_signal(semID);
-};
+void wykonaj_prace(int semID, int kolejka_loggera_ID);
 
 pid_t pids[MAX_KLIENCI];
 SHM *shared;
@@ -30,3 +23,10 @@ int main(int argc, char *argv[]) {
         }
     }
 }
+
+void wykonaj_prace(int semID, int kolejka_loggera_ID) {
+    operacja_wait(semID);
+    zapisz_log(LOG_OSTRZEZENIE, "Tu klient!\n", kolejka_loggera_ID);
+    sleep(1);
+    operacja_signal(semID);
+};

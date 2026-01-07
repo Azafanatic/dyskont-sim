@@ -1,12 +1,12 @@
 #include <unistd.h>
-#include "obsluga.h"
-#include "shared.h"
-#include "wiadomosc.h"
+#include "dyskont_utils.h"
 
-void test(){
-    zapisz_wiadomosc(COL_MAGENTA, "obsluga - test\n");
-};
+void test();
 
 int main(int argc, char *argv[]) {
     test();
 }
+
+void test(){
+    zapisz_wiadomosc(COL_MAGENTA, "obsluga - test\n");
+};

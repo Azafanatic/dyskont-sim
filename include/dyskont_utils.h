@@ -1,3 +1,6 @@
+#ifndef DYSKONT_UTILS_H
+#define DYSKONT_UTILS_H
+
 #include <stdbool.h>
 #include <sys/shm.h>
 
@@ -20,6 +23,16 @@ typedef enum {
     LOG_OSTRZEZENIE,
     LOG_ERR
 } TypLogu;
+
+typedef enum {
+    COL_RED,
+    COL_GREEN,
+    COL_BLUE,
+    COL_YELLOW,
+    COL_CYAN,
+    COL_MAGENTA,
+    COL_DEFAULT
+} KolorWiadomosci;
 
 struct Log {
     long typ_komunikatu;
@@ -59,3 +72,7 @@ void operacja_wait(int semid);
 void operacja_signal(int semid);
 void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_id);
 
+void zapisz_wiadomosc(KolorWiadomosci color, const char *message);
+
+
+#endif

@@ -10,41 +10,35 @@ include_directories(include)
 
 add_executable(kierownik
 		src/kierownik.c
-		src/wiadomosc.c
-		src/shared.c
+		src/dyskont_utils.c
 )
 
 add_executable(klient
 		src/klient.c
-		src/wiadomosc.c
-		src/shared.c
+		src/dyskont_utils.c
 )
 
 add_executable(logger
 		src/logger.c
-		src/shared.c
+		src/dyskont_utils.c
 )
 
 add_executable(dyskont
 		src/main.c
-		src/shared.c
-		src/wiadomosc.c
+		src/dyskont_utils.c
 )
 
 add_executable(kasa_samoobslugowa
 		src/kasa_samoobslugowa.c
-		src/shared.c
-		src/wiadomosc.c
+		src/dyskont_utils.c
 )
 
 add_executable(kasa_stacjonarna
 		src/kasa_stacjonarna.c
-		src/shared.c
-		src/wiadomosc.c
+		src/dyskont_utils.c
 )
 
 add_executable(obsluga
 		src/obsluga.c
-		src/shared.c
-		src/wiadomosc.c
+		src/dyskont_utils.c
 )

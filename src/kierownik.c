@@ -1,17 +1,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
-#include "kierownik.h"
-#include "shared.h"
+#include "dyskont_utils.h"
 
-void wykonaj_prace(int semID, int kolejka_loggera_ID) {
-    operacja_wait(semID);
-    zapisz_log(LOG_INFO, "Tu kierownik!\n", kolejka_loggera_ID);
-    sleep(8);
-    zapisz_log(LOG_OSTRZEZENIE, "Zamykam sklep.\n", kolejka_loggera_ID);
-    kill(getppid(), SIGINT);
-    operacja_signal(semID);
-};
+void wykonaj_prace(int semID, int kolejka_loggera_ID);
 
 SHM *shared;
 
@@ -22,3 +14,12 @@ int main(int argc, char *argv[]) {
     wykonaj_prace(shared->sem_kolejka_samoobslugowa, shared->logger_kolejka);
     exit(0);
 }
+
+void wykonaj_prace(int semID, int kolejka_loggera_ID) {
+    operacja_wait(semID);
+    zapisz_log(LOG_INFO, "Tu kierownik!\n", kolejka_loggera_ID);
+    sleep(8);
+    zapisz_log(LOG_OSTRZEZENIE, "Zamykam sklep.\n", kolejka_loggera_ID);
+    kill(getppid(), SIGINT);
+    operacja_signal(semID);
+};

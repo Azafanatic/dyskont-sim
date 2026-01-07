@@ -1,6 +1,6 @@
 #ifndef LOGGER_H
 #define LOGGER_H
-#include "shared.h"
+#include "dyskont_utils.h"
 
 #define KOLOR_DOMYSLNY "\033[0m"
 #define KOLOR_INFO "\033[94m"

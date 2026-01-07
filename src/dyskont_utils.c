@@ -4,7 +4,9 @@
 #include <sys/sem.h>
 #include <sys/msg.h>
 #include <errno.h>
-#include "shared.h"
+#include <unistd.h>
+#include <stdio.h>
+#include "dyskont_utils.h"
 
 int utworz_semafor(int key) {
     int semID = semget(key, 1, 0666 | IPC_CREAT);
@@ -51,4 +53,37 @@ void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_id) {
     if (msgsnd(kolejka_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
         perror("Blad msgsnd");
     }
+}
+
+void zapisz_wiadomosc(KolorWiadomosci color, const char *message) {
+    const char *color_code = "\033[0m";
+
+    switch (color) {
+        case COL_RED:
+            color_code = "\033[91m";
+            break;
+        case COL_GREEN:
+            color_code = "\033[92m";
+            break;
+        case COL_BLUE:
+            color_code = "\033[94m";
+            break;
+        case COL_YELLOW:
+            color_code = "\033[93m";
+            break;
+        case COL_CYAN:
+            color_code = "\033[96m";
+            break;
+        case COL_MAGENTA:
+            color_code = "\033[95m";
+            break;
+        case COL_DEFAULT:
+            color_code = "\033[0m";
+            break;
+    }
+
+    char formatted_message[1024];
+    int len = snprintf(formatted_message, sizeof(formatted_message), "%s%s\033[0m", color_code, message);
+
+    write(STDOUT_FILENO, formatted_message, len);
 }

@@ -1,10 +1,9 @@
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-#include "shared.h"
-#include "wiadomosc.h"
+#include <unistd.h>
+#include "dyskont_utils.h"
 
 volatile sig_atomic_t koniec = 0;
 int globalny_id_klienta = 0;

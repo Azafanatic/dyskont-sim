@@ -1,12 +1,12 @@
 #include <unistd.h>
-#include "kasa_samoobslugowa.h"
-#include "shared.h"
-#include "wiadomosc.h"
+#include "dyskont_utils.h"
 
-void test(){
-    zapisz_wiadomosc(COL_CYAN, "kasa_samoobslugowa - test\n");
-};
+void test();
 
 int main(int argc, char *argv[]) {
     test();
 }
+
+void test(){
+    zapisz_wiadomosc(COL_CYAN, "kasa_samoobslugowa - test\n");
+};
