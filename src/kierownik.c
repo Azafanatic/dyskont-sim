@@ -39,9 +39,9 @@ void wykonaj_prace() {
     szybkosc_symulacji = shm_dane->szybkosc_symulacji;
     operacja_signal(shm_semafory->sem_sklep_dane);
 
-    zapisz_log(LOG_INFO, "Tu kierownik!\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    zapisz_log(LOG_KIEROWNIK, "Tu kierownik!\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
     usleep(dlugosc_symulacji / szybkosc_symulacji * 1000000);
-    zapisz_log(LOG_INFO, "Zamykam sklep.\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    zapisz_log(LOG_KIEROWNIK, "Zamykam sklep.\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
 
     operacja_wait(shm_semafory->sem_sklep_dane);
     shm_dane->stan_sklepu = false;
@@ -54,15 +54,15 @@ void wykonaj_prace() {
         operacja_signal(shm_semafory->sem_sklep_dane);
 
         if (ilosc_klientow <= 0) {
-            zapisz_log(LOG_INFO, "Sklep zamkniety.\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+            zapisz_log(LOG_KIEROWNIK, "Sklep zamkniety.\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
             kill(getppid(), SIGINT);
 
             char wiadomosc[256];
 
             operacja_wait(shm_semafory->sem_raport);
-            sprintf(wiadomosc, "[KIEROWNIK] Raport:\nKlienci:%d\t Sprzedane produkty: %d\t Średnio: %f\n",shm_raport->wszyscy_klienci, shm_raport->sprzedane_produkty,  shm_raport->sprzedane_produkty / (float) shm_raport->wszyscy_klienci);
+            sprintf(wiadomosc, "Raport:\nKlienci:%d\t Sprzedane produkty: %d\t Średnio: %f\n",shm_raport->wszyscy_klienci, shm_raport->sprzedane_produkty,  shm_raport->sprzedane_produkty / (float) shm_raport->wszyscy_klienci);
             operacja_signal(shm_semafory->sem_raport);
-            zapisz_log(LOG_INFO, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+            zapisz_log(LOG_KIEROWNIK, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
 
             exit(0);
         }

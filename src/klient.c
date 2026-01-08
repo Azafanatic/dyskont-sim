@@ -79,19 +79,19 @@ void wykonaj_prace() {
     int ilosc_rzeczy = MIN_PRODUKTY + rand() % (MAX_PRODUKTY - MIN_PRODUKTY);
     char wiadomosc[256];
 
-    sprintf(wiadomosc, "[Klient %d]: Dzien dobry!\n",getpid());
-    zapisz_log(LOG_OSTRZEZENIE, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
-    sprintf(wiadomosc, "[Klient %d]: Kupie %d rzeczy.\n",getpid(), ilosc_rzeczy);
-    zapisz_log(LOG_OSTRZEZENIE, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
-    usleep((30 + rand() % 30) * 1000000 / szybkosc_symulacji);
+    sprintf(wiadomosc, "(%d): Dzien dobry!\n",getpid());
+    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    sprintf(wiadomosc, "(%d): Kupie %d rzeczy.\n",getpid(), ilosc_rzeczy);
+    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    usleep((120 + rand() % 120) * 1000000 / szybkosc_symulacji);
 
     operacja_wait(shm_semafory->sem_raport);
     shm_raport->sprzedane_produkty = shm_raport->sprzedane_produkty + ilosc_rzeczy;
     shm_raport->wszyscy_klienci = shm_raport->wszyscy_klienci + 1;
     operacja_signal(shm_semafory->sem_raport);
 
-    sprintf(wiadomosc, "[Klient %d]: Dowidzenia!\n",getpid());
-    zapisz_log(LOG_OSTRZEZENIE, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    sprintf(wiadomosc, "(%d): Dowidzenia!\n",getpid());
+    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
 
     exit(0);
 };

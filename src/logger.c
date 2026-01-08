@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include "logger.h"
+#include "dyskont_utils.h"
 
 int shm_kolejki_id;
 int shm_semafory_id;
@@ -76,16 +77,40 @@ int main() {
         const char* kolor = KOLOR_INFO;
 
         switch (msg.typ_logu) {
-            case LOG_INFO:
+            case LOG_SYM_INFO:
                 prefix = "[INFO] ";
                 kolor = KOLOR_INFO;
                 break;
-            case LOG_OSTRZEZENIE: prefix = "[OSTRZERZENIE] ";
+            case LOG_SYM_OSTRZEZENIE: prefix = "[OSTRZERZENIE] ";
                 kolor = KOLOR_OSTRZEZENIE;
                 break;
-            case LOG_ERR:
+            case LOG_SYM_ERR:
                 prefix = "[ERR] ";
                 kolor = KOLOR_ERR;
+                break;
+            case LOG_DOMYSLNY:
+                prefix = "";
+                kolor = KOLOR_DOMYSLNY;
+                break;
+            case LOG_KIEROWNIK:
+                prefix = "[KIEROWNIK] ";
+                kolor = KOLOR_KIEROWNIK;
+                break;
+            case LOG_KLIENT:
+                prefix = "[KLIENT] ";
+                kolor = KOLOR_KLIENT;
+                break;
+            case LOG_OBSLUGA:
+                prefix = "[OBSLUGA] ";
+                kolor = KOLOR_OBSLUGA;
+                break;
+            case LOG_KASA_SAM:
+                prefix = "[KASA SAMOOBSLUGOWA] ";
+                kolor = KOLOR_KASA_SAM;
+                break;
+            case LOG_KASA_STAC:
+                prefix = "[KASA STACJONARNA] ";
+                kolor = KOLOR_KASA_STAC;
                 break;
         }
 

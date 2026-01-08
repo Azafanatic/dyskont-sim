@@ -24,9 +24,15 @@
 #define SHM_RAPORT 4584
 
 typedef enum {
-    LOG_INFO,
-    LOG_OSTRZEZENIE,
-    LOG_ERR
+    LOG_DOMYSLNY,
+    LOG_SYM_INFO,
+    LOG_SYM_OSTRZEZENIE,
+    LOG_SYM_ERR,
+    LOG_KASA_SAM,
+    LOG_KASA_STAC,
+    LOG_KIEROWNIK,
+    LOG_KLIENT,
+    LOG_OBSLUGA,
 } TypLogu;
 
 typedef enum {
