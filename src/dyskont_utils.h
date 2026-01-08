@@ -84,6 +84,8 @@ typedef struct {
 typedef struct {
     int wszyscy_klienci;
     int sprzedane_produkty;
+    float prod_na_klienta;
+    float klienci_w_sklepie;
 } Raport;
 
 typedef struct {

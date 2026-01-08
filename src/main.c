@@ -193,5 +193,11 @@ void shm_destroy() {
 
     shmdt(shm_semafory);
     shmctl(shm_semafory_id, IPC_RMID, NULL);
+
+    shmdt(shm_dane);
+    shmctl(shm_dane_id, IPC_RMID, NULL);
+
+    shmdt(shm_raport);
+    shmctl(shm_raport_id, IPC_RMID, NULL);
 };
 
