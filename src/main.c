@@ -16,12 +16,15 @@ int shm_semafory_id;
 Semafory *shm_semafory;
 int shm_kolejki_id;
 Kolejki *shm_kolejki;
+int shm_raport_id;
+Raport *shm_raport;
 pid_t pids[PROCESY_GLOWNE];
 
 void obsluga_sygnalu(int sig);
 void shm_semafory_init();
 void shm_kolejki_init();
 void shm_dane_init();
+void shm_raport_init();
 void shm_destroy();
 
 int main(int argc, char *argv[]) {
@@ -41,6 +44,12 @@ int main(int argc, char *argv[]) {
 
     shm_dane_init();
     shm_kolejki_init();
+    shm_raport_init();
+
+    operacja_wait(shm_semafory->sem_raport);
+    shm_raport->sprzedane_produkty = 0;
+    shm_raport->wszyscy_klienci = 0;
+    operacja_signal(shm_semafory->sem_raport);
 
     zapisz_log(LOG_INFO, "ROZPOCZYNAM SYMULACJE\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
 
@@ -127,7 +136,7 @@ void shm_semafory_init() {
 }
 
 void shm_kolejki_init() {
-    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), 0666);
+    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), IPC_CREAT | 0666);
     if (shm_kolejki_id == -1) {
         perror("shmget");
         exit(1);
@@ -151,6 +160,18 @@ void shm_dane_init() {
         exit(1);
     }
 };
+
+void shm_raport_init() {
+    shm_raport_id = shmget(SHM_RAPORT, sizeof(Raport), IPC_CREAT | 0666);
+    if (shm_raport_id == -1) {
+        exit(1);
+    }
+
+    shm_raport = (Raport *)shmat(shm_raport_id, NULL, 0);
+    if (shm_raport == (void *)-1) {
+        exit(1);
+    }
+}
 
 void shm_destroy() {
     usun_semafor(shm_semafory->sem_kolejka_samoobslugowa);

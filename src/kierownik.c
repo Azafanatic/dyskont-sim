@@ -11,6 +11,8 @@ Kolejki *shm_kolejki;
 Semafory *shm_semafory;
 int shm_dane_id;
 Dane *shm_dane;
+int shm_raport_id;
+Raport *shm_raport;
 int szybkosc_symulacji;
 
 void wykonaj_prace();
@@ -54,6 +56,14 @@ void wykonaj_prace() {
         if (ilosc_klientow <= 0) {
             zapisz_log(LOG_INFO, "Sklep zamkniety.\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
             kill(getppid(), SIGINT);
+
+            char wiadomosc[256];
+
+            operacja_wait(shm_semafory->sem_raport);
+            sprintf(wiadomosc, "[KIEROWNIK] Raport:\nKlienci:%d\t Sprzedane produkty: %d\t Średnio: %f\n",shm_raport->wszyscy_klienci, shm_raport->sprzedane_produkty,  shm_raport->sprzedane_produkty / (float) shm_raport->wszyscy_klienci);
+            operacja_signal(shm_semafory->sem_raport);
+            zapisz_log(LOG_INFO, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+
             exit(0);
         }
 
@@ -91,6 +101,16 @@ void shm_init() {
     if (shm_dane == (void *)-1) {
         exit(1);
     }
+
+    shm_raport_id = shmget(SHM_RAPORT, sizeof(Raport), 0666);
+    if (shm_raport_id == -1) {
+        exit(1);
+    }
+
+    shm_raport = (Raport *)shmat(shm_raport_id, NULL, 0);
+    if (shm_raport == (void *)-1) {
+        exit(1);
+    }
 };
 void shm_destroy() {
     shmdt(shm_kolejki);
@@ -101,5 +121,8 @@ void shm_destroy() {
 
     shmdt(shm_dane);
     shmctl(shm_dane_id, IPC_RMID, NULL);
+
+    shmdt(shm_raport);
+    shmctl(shm_raport_id, IPC_RMID, NULL);
 
 };

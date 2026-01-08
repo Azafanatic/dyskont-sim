@@ -21,6 +21,7 @@
 #define SHM_SEMAFORY 4581
 #define SHM_KOLEJKI 4582
 #define SHM_DANE 4583
+#define SHM_RAPORT 4584
 
 typedef enum {
     LOG_INFO,
@@ -73,6 +74,11 @@ typedef struct {
     int ilosc_klientow;
     bool stan_sklepu;
 } Dane;
+
+typedef struct {
+    int wszyscy_klienci;
+    int sprzedane_produkty;
+} Raport;
 
 typedef struct {
     int kol_logger;

@@ -13,6 +13,8 @@ Kolejki *shm_kolejki;
 Semafory *shm_semafory;
 int shm_dane_id;
 Dane *shm_dane;
+int shm_raport_id;
+Raport *shm_raport;
 int szybkosc_symulacji;
 
 void wykonaj_prace();
@@ -74,7 +76,7 @@ int main(int argc, char *argv[]) {
 }
 
 void wykonaj_prace() {
-    int ilosc_rzeczy = 3 + rand() % 7;
+    int ilosc_rzeczy = MIN_PRODUKTY + rand() % (MAX_PRODUKTY - MIN_PRODUKTY);
     char wiadomosc[256];
 
     sprintf(wiadomosc, "[Klient %d]: Dzien dobry!\n",getpid());
@@ -82,6 +84,12 @@ void wykonaj_prace() {
     sprintf(wiadomosc, "[Klient %d]: Kupie %d rzeczy.\n",getpid(), ilosc_rzeczy);
     zapisz_log(LOG_OSTRZEZENIE, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
     usleep((30 + rand() % 30) * 1000000 / szybkosc_symulacji);
+
+    operacja_wait(shm_semafory->sem_raport);
+    shm_raport->sprzedane_produkty = shm_raport->sprzedane_produkty + ilosc_rzeczy;
+    shm_raport->wszyscy_klienci = shm_raport->wszyscy_klienci + 1;
+    operacja_signal(shm_semafory->sem_raport);
+
     sprintf(wiadomosc, "[Klient %d]: Dowidzenia!\n",getpid());
     zapisz_log(LOG_OSTRZEZENIE, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
 
@@ -118,6 +126,16 @@ void shm_init(){
     if (shm_dane == (void *)-1) {
         exit(1);
     }
+
+    shm_raport_id = shmget(SHM_RAPORT, sizeof(Raport), 0666);
+    if (shm_raport_id == -1) {
+        exit(1);
+    }
+
+    shm_raport = (Raport *)shmat(shm_raport_id, NULL, 0);
+    if (shm_raport == (void *)-1) {
+        exit(1);
+    }
 };
 void shm_destroy() {
     shmdt(shm_kolejki);
@@ -125,4 +143,10 @@ void shm_destroy() {
 
     shmdt(shm_semafory);
     shmctl(shm_semafory_id, IPC_RMID, NULL);
+
+    shmdt(shm_dane);
+    shmctl(shm_dane_id, IPC_RMID, NULL);
+
+    shmdt(shm_raport);
+    shmctl(shm_raport_id, IPC_RMID, NULL);
 };
