@@ -5,9 +5,99 @@
 #include <unistd.h>
 #include "dyskont_utils.h"
 
+#define PROCESY_GLOWNE 6
+
 volatile sig_atomic_t koniec = 0;
 int globalny_id_klienta = 0;
 char shm_id_str[8];
+int shm_dane_id;
+Dane *shm_dane;
+int shm_semafory_id;
+Semafory *shm_semafory;
+int shm_kolejki_id;
+Kolejki *shm_kolejki;
+pid_t pids[PROCESY_GLOWNE];
+
+void obsluga_sygnalu(int sig);
+void shm_semafory_init();
+void shm_kolejki_init();
+void shm_dane_init();
+void shm_destroy();
+
+int main(int argc, char *argv[]) {
+
+    shm_semafory_init();
+
+    pids[0] = fork();
+    if (pids[0] < 0) {
+        zapisz_wiadomosc(COL_RED, "Błąd forka loggera\n");
+        exit(1);
+    } else if (pids[0] == 0) {
+        execlp("./logger", "logger", (char *)NULL);
+        zapisz_wiadomosc(COL_RED, "Błąd exec dla loggera\n");
+        exit(1);
+    }
+    sleep(1);
+
+    shm_dane_init();
+    shm_kolejki_init();
+
+    zapisz_log(LOG_INFO, "ROZPOCZYNAM SYMULACJE\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+
+    operacja_wait(shm_semafory->sem_sklep_dane);
+    if (argc >= 2) {
+        shm_dane->dlugosc_symulacji = atoi(argv[1]);
+    } else {
+        shm_dane->dlugosc_symulacji = 3600;
+    }
+
+    if (argc >= 3) {
+        shm_dane->szybkosc_symulacji = atoi(argv[2]);
+    } else {
+        shm_dane->szybkosc_symulacji = 60;
+    }
+    operacja_signal(shm_semafory->sem_sklep_dane);
+
+    {
+        char * argumenty[PROCESY_GLOWNE] = {"logger", "kierownik", "klient", "kasa_samoobslugowa", "kasa_stacjonarna", "obsluga"};
+        char argZero[32];
+        char blad[128];
+
+        for (int i = 1; i < PROCESY_GLOWNE; i++) {
+            pids[i] = fork();
+
+            sprintf(argZero, "./%s", argumenty[i]);
+
+            if (pids[i] < 0) {
+                zapisz_wiadomosc(COL_RED, "Błąd forka\n");
+                exit(1);
+            } else if (pids[i] == 0) {
+                execlp(argZero, argumenty[i], (char *)NULL);
+                zapisz_wiadomosc(COL_RED, "Błąd exec\n");
+                exit(1);
+            }
+        }
+    }
+
+    signal(SIGINT, obsluga_sygnalu);
+    while (!koniec) {
+        sleep(1);
+    }
+
+    zapisz_log(LOG_INFO, "KONCZE SYMULACJE\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+
+    sleep(1);
+    for (int i = 0; i < PROCESY_GLOWNE; i++) {
+        kill(pids[i], SIGINT);
+    }
+    for (int i = 0; i < PROCESY_GLOWNE; i++) {
+        waitpid(pids[i], NULL, 0);
+    }
+
+    shm_destroy();
+
+    return 0;
+}
 
 void obsluga_sygnalu(int sig) {
     if (sig == SIGINT) {
@@ -15,17 +105,13 @@ void obsluga_sygnalu(int sig) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    pid_t pids[6];
-    int pid_index = 6;
-
-    int shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), IPC_CREAT | 0666);
+void shm_semafory_init() {
+    shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), IPC_CREAT | 0666);
     if (shm_semafory_id == -1) {
         perror("shmget");
         exit(1);
     }
-
-    Semafory *shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
+    shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
     if (shm_semafory == (void *)-1) {
         perror("shmat");
         exit(1);
@@ -38,71 +124,35 @@ int main(int argc, char *argv[]) {
     shm_semafory->sem_raport = utworz_semafor(SEM_ID_RAPORT);
     shm_semafory->sem_kolejka_logger = utworz_semafor(SEM_ID_KOLEJKA_LOGGER);
     shm_semafory->sem_sklep_dane = utworz_semafor(SEM_ID_SKLEP_DANE);
+}
 
-    // Logger
-    pids[0] = fork();
-    if (pids[0] < 0) {
-        zapisz_wiadomosc(COL_RED, "Błąd forka loggera\n");
-        exit(1);
-    } else if (pids[0] == 0) {
-        execlp("./logger", "logger", (char *)NULL);
-        zapisz_wiadomosc(COL_RED, "Błąd exec dla loggera\n");
-        exit(1);
-    }
-
-    sleep(1);
-
-    int shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), 0666);
+void shm_kolejki_init() {
+    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), 0666);
     if (shm_kolejki_id == -1) {
         perror("shmget");
         exit(1);
     }
-
-    Kolejki *shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
+    shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
     if (shm_kolejki == (void *)-1) {
         perror("shmat");
         exit(1);
     }
+};
 
-    zapisz_log(LOG_INFO, "ROZPOCZYNAM SYMULACJE\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
-
-    char * argumenty[5] = {"kierownik", "klient", "kasa_samoobslugowa", "kasa_stacjonarna", "obsluga"};
-    char argZero[32];
-    char blad[128];
-
-    for (int i = 0; i < 5; i++) {
-        pids[i] = fork();
-
-        sprintf(argZero, "./%s", argumenty[i]);
-
-        if (pids[i] < 0) {
-            zapisz_wiadomosc(COL_RED, "Błąd forka\n");
-            exit(1);
-        } else if (pids[i] == 0) {
-            execlp(argZero, argumenty[i], (char *)NULL);
-            zapisz_wiadomosc(COL_RED, "Błąd exec\n");
-            exit(1);
-        }
+void shm_dane_init() {
+    shm_dane_id = shmget(SHM_DANE, sizeof(Dane), IPC_CREAT | 0666);
+    if (shm_dane_id == -1) {
+        perror("shmget");
+        exit(1);
     }
-
-    signal(SIGINT, obsluga_sygnalu);
-
-    while (!koniec) {
-        sleep(1);
+    shm_dane = (Dane *)shmat(shm_dane_id, NULL, 0);
+    if (shm_dane == (void *)-1) {
+        perror("shmat");
+        exit(1);
     }
+};
 
-    zapisz_log(LOG_INFO, "KONCZE SYMULACJE\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
-
-    sleep(1);
-
-    for (int i = 0; i < pid_index; i++) {
-        kill(pids[i], SIGINT);
-    }
-
-    for (int i = 0; i < pid_index; i++) {
-        waitpid(pids[i], NULL, 0);
-    }
-
+void shm_destroy() {
     usun_semafor(shm_semafory->sem_kolejka_samoobslugowa);
     usun_semafor(shm_semafory->sem_kolejka_stacjonarna);
     usun_semafor(shm_semafory->sem_otwieranie_kasy);
@@ -116,6 +166,5 @@ int main(int argc, char *argv[]) {
 
     shmdt(shm_semafory);
     shmctl(shm_semafory_id, IPC_RMID, NULL);
+};
 
-    return 0;
-}

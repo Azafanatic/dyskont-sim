@@ -13,45 +13,25 @@ Kolejki *shm_kolejki;
 Semafory *shm_semafory;
 int shm_dane_id;
 Dane *shm_dane;
+int szybkosc_symulacji;
 
 void wykonaj_prace();
+void shm_init();
+void shm_destroy();
 
 int main(int argc, char *argv[]) {
 
+    shm_init();
+
     srand(time(NULL));
-
-    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), 0666);
-    if (shm_kolejki_id == -1) {
-        exit(1);
-    }
-
-    shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
-    if (shm_kolejki == (void *)-1) {
-        exit(1);
-    }
-
-    shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), 0666);
-    if (shm_kolejki_id == -1) {
-        exit(1);
-    }
-
-    shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
-    if (shm_kolejki == (void *)-1) {
-        exit(1);
-    }
-
-    shm_dane_id = shmget(SHM_SEMAFORY, sizeof(Dane), 0666);
-    if (shm_dane_id == -1) {
-        exit(1);
-    }
-
-    shm_dane = (Dane *)shmat(shm_semafory_id, NULL, 0);
-    if (shm_dane == (void *)-1) {
-        exit(1);
-    }
 
     int aktywni = 0;
     bool stan_sklepu;
+
+    operacja_wait(shm_semafory->sem_sklep_dane);
+    szybkosc_symulacji = shm_dane->szybkosc_symulacji;
+    operacja_signal(shm_semafory->sem_sklep_dane);
+
     while (!koniec) {
 
         for (int i = 0; i < aktywni; i++) {
@@ -75,7 +55,6 @@ int main(int argc, char *argv[]) {
             }
             else if (pid == 0) {
                 wykonaj_prace();
-                exit(0);
             }
             else {
                 pids[aktywni++] = pid;
@@ -86,14 +65,12 @@ int main(int argc, char *argv[]) {
         shm_dane->ilosc_klientow = aktywni;
         operacja_signal(shm_semafory->sem_sklep_dane);
 
-        sleep(rand() % 6);
+        usleep((rand() % 3) * 1000000 / szybkosc_symulacji);
     }
 
-    shmdt(shm_kolejki);
-    shmctl(shm_kolejki_id, IPC_RMID, NULL);
+    shm_destroy();
 
-    shmdt(shm_semafory);
-    shmctl(shm_semafory_id, IPC_RMID, NULL);
+    exit(0);
 }
 
 void wykonaj_prace() {
@@ -104,8 +81,48 @@ void wykonaj_prace() {
     zapisz_log(LOG_OSTRZEZENIE, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
     sprintf(wiadomosc, "[Klient %d]: Kupie %d rzeczy.\n",getpid(), ilosc_rzeczy);
     zapisz_log(LOG_OSTRZEZENIE, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
-    sleep(30 + rand() % 30);
+    usleep((30 + rand() % 30) * 1000000 / szybkosc_symulacji);
     sprintf(wiadomosc, "[Klient %d]: Dowidzenia!\n",getpid());
     zapisz_log(LOG_OSTRZEZENIE, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
 
+    exit(0);
+};
+
+void shm_init(){
+    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), 0666);
+    if (shm_kolejki_id == -1) {
+        exit(1);
+    }
+
+    shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
+    if (shm_kolejki == (void *)-1) {
+        exit(1);
+    }
+
+    shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), 0666);
+    if (shm_kolejki_id == -1) {
+        exit(1);
+    }
+
+    shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
+    if (shm_kolejki == (void *)-1) {
+        exit(1);
+    }
+
+    shm_dane_id = shmget(SHM_DANE, sizeof(Dane), 0666);
+    if (shm_dane_id == -1) {
+        exit(1);
+    }
+
+    shm_dane = (Dane *)shmat(shm_dane_id, NULL, 0);
+    if (shm_dane == (void *)-1) {
+        exit(1);
+    }
+};
+void shm_destroy() {
+    shmdt(shm_kolejki);
+    shmctl(shm_kolejki_id, IPC_RMID, NULL);
+
+    shmdt(shm_semafory);
+    shmctl(shm_semafory_id, IPC_RMID, NULL);
 };

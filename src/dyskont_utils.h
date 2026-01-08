@@ -20,6 +20,7 @@
 
 #define SHM_SEMAFORY 4581
 #define SHM_KOLEJKI 4582
+#define SHM_DANE 4583
 
 typedef enum {
     LOG_INFO,
@@ -67,6 +68,8 @@ typedef struct {
 } Semafory;
 
 typedef struct {
+    int dlugosc_symulacji;
+    int szybkosc_symulacji;
     int ilosc_klientow;
     bool stan_sklepu;
 } Dane;
