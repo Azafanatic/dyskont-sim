@@ -39,8 +39,24 @@ void wykonaj_prace() {
     szybkosc_symulacji = shm_dane->szybkosc_symulacji;
     operacja_signal(shm_semafory->sem_sklep_dane);
 
-    zapisz_log(LOG_KIEROWNIK, "Tu kierownik!\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
-    usleep(dlugosc_symulacji / szybkosc_symulacji * 1000000);
+    zapisz_log(LOG_KIEROWNIK, "Otwieram sklep!\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+
+    int ilosc_pomiarow = 100;
+    double czas_pomiedzy_pomiarami = dlugosc_symulacji / (double) szybkosc_symulacji * 1000000 / ilosc_pomiarow;
+    int zmierzeni_klienci = 0;
+
+    for (int i = 0; i < ilosc_pomiarow; i++) {
+        usleep(czas_pomiedzy_pomiarami);
+        operacja_wait(shm_semafory->sem_sklep_dane);
+        zmierzeni_klienci += shm_dane->ilosc_klientow;
+        operacja_signal(shm_semafory->sem_sklep_dane);
+    }
+
+    operacja_wait(shm_semafory->sem_raport);
+    shm_raport->prod_na_klienta = shm_raport->sprzedane_produkty / (float) shm_raport->wszyscy_klienci;
+    shm_raport->klienci_w_sklepie = zmierzeni_klienci / (float) ilosc_pomiarow;
+    operacja_signal(shm_semafory->sem_raport);
+
     zapisz_log(LOG_KIEROWNIK, "Zamykam sklep.\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
 
     operacja_wait(shm_semafory->sem_sklep_dane);
@@ -60,7 +76,7 @@ void wykonaj_prace() {
             char wiadomosc[256];
 
             operacja_wait(shm_semafory->sem_raport);
-            sprintf(wiadomosc, "Raport:\nKlienci:%d\t Sprzedane produkty: %d\t Średnio: %f\n",shm_raport->wszyscy_klienci, shm_raport->sprzedane_produkty,  shm_raport->sprzedane_produkty / (float) shm_raport->wszyscy_klienci);
+            sprintf(wiadomosc, "Raport:\nKlienci: %d\t Sprzedane produkty: %d\t Prod./Klient: %.2f\t Średnio klientów: %.2f\n",shm_raport->wszyscy_klienci, shm_raport->sprzedane_produkty,  shm_raport->prod_na_klienta, shm_raport->klienci_w_sklepie);
             operacja_signal(shm_semafory->sem_raport);
             zapisz_log(LOG_KIEROWNIK, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
 

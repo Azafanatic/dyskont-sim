@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <sys/shm.h>
 
-#define MAX_KLIENCI 128
+#define MAX_KLIENCI 256
 #define MIN_PRODUKTY 3
 #define MAX_PRODUKTY 10
 #define MAX_KASY_SAMOOBSLUGOWE 6
