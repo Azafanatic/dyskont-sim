@@ -14,14 +14,13 @@ int shm_kolejki_id;
 int shm_semafory_id;
 Kolejki *shm_kolejki;
 Semafory *shm_semafory;
+int kolejka_id;
 
 sig_atomic_t koniec = 0;
 
-void obsluga_sygnalu(int sig) {
-    if (sig == SIGINT) {
-        koniec = 1;
-    }
-}
+void obsluga_sygnalu(int sig);
+void shm_init();
+void shm_destroy();
 
 int main() {
 
@@ -29,34 +28,10 @@ int main() {
 
     mkdir("logi", 0755);
 
-    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), IPC_CREAT | 0666);
-    if (shm_kolejki_id == -1) {
-        perror("shmget");
-        exit(1);
-    }
-
-    Kolejki *shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
-    if (shm_kolejki == (void *)-1) {
-        perror("shmat");
-        exit(1);
-    }
-
-    int kolejka_id = msgget(MSQ_LOG_ID, IPC_CREAT | 0600);
-    if (kolejka_id == -1) {
-        exit(1);
-    }
-
-    shm_kolejki->kol_logger = kolejka_id;
-
-    shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), 0666);
-    if (shm_semafory_id == -1) {
-        exit(1);
-    }
-
-    shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
-    if (shm_semafory == (void *)-1) {
-        exit(1);
-    }
+    shm_init();
+    operacja_wait(shm_semafory->sem_kolejki);
+    kolejka_id = shm_kolejki->kol_logger;
+    operacja_signal(shm_semafory->sem_kolejki);
 
     char sciezka[64];
     sprintf(sciezka, "logi/log_glowny.log");
@@ -82,8 +57,8 @@ int main() {
                 kolor = KOLOR_INFO;
                 break;
             case LOG_SYM_OSTRZEZENIE: prefix = "[OSTRZERZENIE] ";
-                kolor = KOLOR_OSTRZEZENIE;
-                break;
+            kolor = KOLOR_OSTRZEZENIE;
+            break;
             case LOG_SYM_ERR:
                 prefix = "[ERR] ";
                 kolor = KOLOR_ERR;
@@ -123,10 +98,42 @@ int main() {
 
     close(deskryptor_pliku);
 
-    msgctl(kolejka_id, IPC_RMID, NULL);
-    shmdt(shm_kolejki);
-    shmctl(shm_kolejki_id, IPC_RMID, NULL);
+    shm_destroy();
 
     exit(0);
+}
+
+void obsluga_sygnalu(int sig) {
+    if (sig == SIGINT) {
+        koniec = 1;
+    }
+}
+
+void shm_init() {
+    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), 0666);
+    if (shm_kolejki_id == -1) {
+        perror("shmget");
+        exit(1);
+    }
+
+    shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
+    if (shm_kolejki == (void *)-1) {
+        perror("shmat");
+        exit(1);
+    }
+
+    shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), 0666);
+    if (shm_semafory_id == -1) {
+        exit(1);
+    }
+
+    shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
+    if (shm_semafory == (void *)-1) {
+        exit(1);
+    }
+}
+
+void shm_destroy() {
+    shmdt(shm_kolejki);
 }
 

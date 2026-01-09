@@ -16,6 +16,7 @@ Dane *shm_dane;
 int shm_raport_id;
 Raport *shm_raport;
 int szybkosc_symulacji;
+char wiadomosc[240];
 
 void wykonaj_prace();
 void shm_init();
@@ -92,8 +93,6 @@ void wykonaj_prace() {
             zapisz_log(LOG_KIEROWNIK, "Sklep zamkniety.\n", shm_kolejki->kol_logger);
             kill(getppid(), SIGINT);
 
-            char wiadomosc[256];
-
             operacja_wait(shm_semafory->sem_raport);
             sprintf(wiadomosc, "Raport:\nKlienci: %d\t Sprzedane produkty: %d\t Prod./Klient: %.2f\t Średnio klientów: %.2f\n",shm_raport->wszyscy_klienci, shm_raport->sprzedane_produkty,  shm_raport->prod_na_klienta, shm_raport->klienci_w_sklepie);
             operacja_signal(shm_semafory->sem_raport);
@@ -149,15 +148,10 @@ void shm_init() {
 };
 void shm_destroy() {
     shmdt(shm_kolejki);
-    shmctl(shm_kolejki_id, IPC_RMID, NULL);
 
     shmdt(shm_semafory);
-    shmctl(shm_semafory_id, IPC_RMID, NULL);
 
     shmdt(shm_dane);
-    shmctl(shm_dane_id, IPC_RMID, NULL);
 
     shmdt(shm_raport);
-    shmctl(shm_raport_id, IPC_RMID, NULL);
-
 };

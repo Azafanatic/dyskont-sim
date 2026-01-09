@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
 }
 
 void wykonaj_prace() {
+    char wiadomosc[240];
 
     Klient klient;
     klient.liczba_produktow = MIN_PRODUKTY + rand() % (MAX_PRODUKTY - MIN_PRODUKTY + 1);
@@ -110,8 +111,6 @@ void wykonaj_prace() {
             break;
         }
     }
-
-    char wiadomosc[220];
 
     sprintf(wiadomosc, "(%d): Dzien dobry!\n",klient.id);
     zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger);
@@ -197,14 +196,10 @@ void shm_init(){
 };
 void shm_destroy() {
     shmdt(shm_kolejki);
-    shmctl(shm_kolejki_id, IPC_RMID, NULL);
 
     shmdt(shm_semafory);
-    shmctl(shm_semafory_id, IPC_RMID, NULL);
 
     shmdt(shm_dane);
-    shmctl(shm_dane_id, IPC_RMID, NULL);
 
     shmdt(shm_raport);
-    shmctl(shm_raport_id, IPC_RMID, NULL);
 };

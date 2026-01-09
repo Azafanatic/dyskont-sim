@@ -15,13 +15,17 @@
 #define SEM_ID_OTWIERANIE_KASY 6843
 #define SEM_ID_ZAMYKANIE_KASY 6844
 #define SEM_ID_RAPORT 6845
-#define SEM_ID_KOLEJKA_LOGGER 6846
+#define SEM_ID_KOLEJKI 6846
 #define SEM_ID_SKLEP_DANE 6847
 
 #define SHM_SEMAFORY 4581
 #define SHM_KOLEJKI 4582
 #define SHM_DANE 4583
 #define SHM_RAPORT 4584
+
+
+#define MSQ_LOG_ID 6840
+#define MSQ_KASY_SAM_ID 6841
 
 typedef enum {
     LOG_DOMYSLNY,
@@ -66,6 +70,11 @@ typedef struct {
     Produkt produkty[MAX_PRODUKTY];
 } Klient;
 
+typedef struct {
+    long typ_komunikatu;
+    Klient klient;
+    pid_t pid_klienta;
+} KlientWKolejce;
 
 typedef struct {
     int id;
@@ -74,12 +83,10 @@ typedef struct {
 } Kasa;
 
 typedef struct {
-    int sem_kolejka_samoobslugowa;
-    int sem_kolejka_stacjonarna;
     int sem_otwieranie_kasy;
     int sem_zamykanie_kasy;
     int sem_raport;
-    int sem_kolejka_logger;
+    int sem_kolejki;
     int sem_sklep_dane;
 } Semafory;
 

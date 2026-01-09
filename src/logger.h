@@ -12,8 +12,6 @@
 #define KOLOR_KASA_STAC "\033[32m"
 #define KOLOR_KASA_SAM "\033[31m"
 
-#define MSQ_LOG_ID 6840
-
 int main();
 
 #endif
