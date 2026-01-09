@@ -52,7 +52,7 @@ typedef enum {
 typedef struct {
     long typ_komunikatu;
     TypLogu typ_logu;
-    char wiadomosc[256];
+    char wiadomosc[320];
 } Log;
 
 typedef struct {
@@ -73,8 +73,7 @@ typedef struct {
 typedef struct {
     long typ_komunikatu;
     Klient klient;
-    pid_t pid_klienta;
-} KlientWKolejce;
+} KlientMSQ;
 
 typedef struct {
     int id;
@@ -99,6 +98,8 @@ typedef struct {
 
 typedef struct {
     int wszyscy_klienci;
+    int klienci_nieobslozeni;
+    float skasowane_pieniadze;
     int sprzedane_produkty;
     float prod_na_klienta;
     float klienci_w_sklepie;
@@ -106,18 +107,19 @@ typedef struct {
 
 typedef struct {
     int kol_logger;
-    int kol_kasy_samoobslugowe;
-    int kol_kasy_stacjonarne;
+    int kol_kasy_sam;
+    int kol_kasy_stac;
 } Kolejki;
 
 int utworz_semafor(int key);
 void usun_semafor(int semid);
 void operacja_wait(int semid);
 void operacja_signal(int semid);
-void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_id);
+void zapisz_log(TypLogu typ_logu, const char* format, int msq_id);
 
 void zapisz_wiadomosc(KolorWiadomosci color, const char *message);
 
-int ilu_w_kolejce(int kolejka_logger_id);
+int ilu_w_kolejce(int msq_id);
+void stan_w_kolejce(Klient klient, int msq_id);
 
 #endif

@@ -9,8 +9,8 @@
 #define KOLOR_KIEROWNIK "\033[92m"
 #define KOLOR_KLIENT "\033[95m"
 #define KOLOR_OBSLUGA "\033[96m"
-#define KOLOR_KASA_STAC "\033[32m"
-#define KOLOR_KASA_SAM "\033[31m"
+#define KOLOR_KASA_STAC "\033[31m"
+#define KOLOR_KASA_SAM "\033[32m"
 
 int main();
 

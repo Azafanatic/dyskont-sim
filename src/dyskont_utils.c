@@ -41,32 +41,18 @@ void operacja_signal(int semID) {
     }
 }
 
-void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_logger_id) {
-    if (kolejka_logger_id == -1) return;
+void zapisz_log(TypLogu typ_logu, const char* format, int msq_id) {
+    if (msq_id == -1) return;
 
     Log msg;
     msg.typ_komunikatu = 1;
     msg.typ_logu = typ_logu;
     strncpy(msg.wiadomosc, format, 255);
 
-    if (msgsnd(kolejka_logger_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
+    if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
         perror("Blad msgsnd");
         return;
     }
-
-    /*
-    struct msqid_ds buf;
-    if (msgctl(kolejka_logger_id, IPC_STAT, &buf) == -1) {
-        perror("msgctl");
-        return;
-    }
-
-    char ilosc_wiad[8];
-    sprintf(ilosc_wiad, "(%d)", (int)buf.msg_qnum);
-    strcat(msg.wiadomosc, ilosc_wiad);
-    msg.wiadomosc[255] = '\0';
-    zapisz_wiadomosc(COL_BLUE, msg.wiadomosc);
-    */
 }
 
 void zapisz_wiadomosc(KolorWiadomosci color, const char *message) {
@@ -102,6 +88,25 @@ void zapisz_wiadomosc(KolorWiadomosci color, const char *message) {
     write(STDOUT_FILENO, formatted_message, len);
 }
 
-int ilu_w_kolejce(int kolejka_logger_id){
-    return 0;
+int ilu_w_kolejce(int msq_id){
+     struct msqid_ds buf;
+     if (msgctl(msq_id, IPC_STAT, &buf) == -1) {
+         perror("msgctl");
+         return -1;
+    }
+    return buf.msg_qnum;
 };
+
+void stan_w_kolejce(Klient klient, int msq_id) {
+    if (msq_id == -1) return;
+
+    KlientMSQ msg;
+    msg.typ_komunikatu = 1;
+    msg.klient = klient;
+
+    if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
+        perror("Blad msgsnd");
+        return;
+    }
+}
+

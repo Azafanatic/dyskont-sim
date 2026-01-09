@@ -156,8 +156,14 @@ void msq_init() {
     if (msq_logger_id == -1) {
         exit(1);
     }
+    int msq_kasy_sam_id = msgget(MSQ_KASY_SAM_ID, IPC_CREAT | 0600);
+    if (msq_kasy_sam_id == -1) {
+        exit(1);
+    }
+
     operacja_wait(shm_semafory->sem_kolejki);
     shm_kolejki->kol_logger = msq_logger_id;
+    shm_kolejki->kol_kasy_sam = msq_kasy_sam_id;
     operacja_signal(shm_semafory->sem_kolejki);
 }
 
@@ -169,6 +175,7 @@ void shm_destroy() {
     usun_semafor(shm_semafory->sem_sklep_dane);
 
     msgctl(shm_kolejki->kol_logger, IPC_RMID, NULL);
+    msgctl(shm_kolejki->kol_kasy_sam, IPC_RMID, NULL);
 
     shmdt(shm_kolejki);
     shmctl(shm_kolejki_id, IPC_RMID, NULL);

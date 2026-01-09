@@ -16,7 +16,7 @@ Dane *shm_dane;
 int shm_raport_id;
 Raport *shm_raport;
 int szybkosc_symulacji;
-char wiadomosc[240];
+char wiadomosc[320];
 
 void wykonaj_prace();
 void shm_init();
@@ -48,28 +48,12 @@ void wykonaj_prace() {
     double czas_pomiedzy_pomiarami = dlugosc_symulacji / (double) szybkosc_symulacji * 1000000 / ilosc_pomiarow;
     int zmierzeni_klienci = 0;
 
-    /*
-    char sciezka[64];
-    sprintf(sciezka, "logi/log_ilosci_klientow.log");
-
-    int deskryptor_pliku = open(sciezka, O_WRONLY | O_CREAT, 0644);
-    if (deskryptor_pliku == -1) {
-        exit(1);
-    }
-    char bufor_wiadomosci[32];
-    */
     for (int i = 0; i < ilosc_pomiarow; i++) {
         usleep(czas_pomiedzy_pomiarami);
         operacja_wait(shm_semafory->sem_sklep_dane);
         zmierzeni_klienci += shm_dane->ilosc_klientow;
-        /*
-        sprintf(bufor_wiadomosci, "%d,\n", shm_dane->ilosc_klientow);
-        write(deskryptor_pliku, bufor_wiadomosci, strlen(bufor_wiadomosci));
-        */
         operacja_signal(shm_semafory->sem_sklep_dane);
     }
-
-    //close(deskryptor_pliku);
 
     operacja_wait(shm_semafory->sem_raport);
     shm_raport->prod_na_klienta = shm_raport->sprzedane_produkty / (float) shm_raport->wszyscy_klienci;
@@ -94,7 +78,7 @@ void wykonaj_prace() {
             kill(getppid(), SIGINT);
 
             operacja_wait(shm_semafory->sem_raport);
-            sprintf(wiadomosc, "Raport:\nKlienci: %d\t Sprzedane produkty: %d\t Prod./Klient: %.2f\t Średnio klientów: %.2f\n",shm_raport->wszyscy_klienci, shm_raport->sprzedane_produkty,  shm_raport->prod_na_klienta, shm_raport->klienci_w_sklepie);
+            sprintf(wiadomosc, "Raport:\nKlienci: %d\t Sprzedane produkty: %d\t Prod./Klient: %.2f\t Średnio klientów: %.2f\nWszystkie pieniadze: %.2f \t Klienci nieobslozeni: %d\n",shm_raport->wszyscy_klienci, shm_raport->sprzedane_produkty,  shm_raport->prod_na_klienta, shm_raport->klienci_w_sklepie, shm_raport->skasowane_pieniadze, shm_raport->klienci_nieobslozeni);
             operacja_signal(shm_semafory->sem_raport);
             zapisz_log(LOG_KIEROWNIK, wiadomosc, shm_kolejki->kol_logger);
 
@@ -146,6 +130,7 @@ void shm_init() {
         exit(1);
     }
 };
+
 void shm_destroy() {
     shmdt(shm_kolejki);
 

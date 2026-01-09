@@ -1,4 +1,3 @@
-#include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -23,6 +22,9 @@ int szybkosc_symulacji;
 int aktywni = 0;
 bool stan_sklepu;
 
+volatile sig_atomic_t skasowano = 0;
+bool sukces;
+
 
 Produkt dostepne_produkty[32] =
 {{"Piwo", 2.99, true}, {"Wino", 39.99, true}, {"Wodka", 44.99, true}, {"Jagermeister", 69.99, true},
@@ -38,6 +40,7 @@ Produkt dostepne_produkty[32] =
 void wykonaj_prace();
 void shm_init();
 void shm_destroy();
+void obsluga_sygnalu(int sig);
 
 int main(int argc, char *argv[]) {
 
@@ -94,6 +97,9 @@ int main(int argc, char *argv[]) {
 void wykonaj_prace() {
     char wiadomosc[240];
 
+    signal(SIGUSR1, obsluga_sygnalu);
+    signal(SIGUSR2, obsluga_sygnalu);
+
     Klient klient;
     klient.liczba_produktow = MIN_PRODUKTY + rand() % (MAX_PRODUKTY - MIN_PRODUKTY + 1);
     klient.czas_zakupow = (double) (120 + rand() % 30 * klient.liczba_produktow) / szybkosc_symulacji * 1000000;
@@ -121,33 +127,20 @@ void wykonaj_prace() {
 
     usleep(klient.czas_zakupow);
 
-    /*
-    if (klient.ma_alkohol == true && klient.wiek < 18) {
-        sprintf(wiadomosc, "(%d): Mam %d lat i chciałbym kupić alkohol :)\n",klient.id, klient.wiek);
-        zapisz_log(LOG_SYM_OSTRZEZENIE, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    sprintf(wiadomosc, "Staje w kolejce. Moje miesce ma nr. %d\n", ilu_w_kolejce(shm_kolejki->kol_kasy_sam));
+    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger);
+    stan_w_kolejce(klient, shm_kolejki->kol_kasy_sam);
+
+    while (!skasowano) {
+        sleep(1);
     }
 
-    sprintf(wiadomosc, "(%d): Moje zakupy to: ",klient.id);
-    for (int i = 0; i < klient.liczba_produktow; i++) {
-        strcat(wiadomosc, klient.produkty[i].nazwa);
-        strcat(wiadomosc, " ");
-    }
-    strcat(wiadomosc, "\n");
-
-    if (klient.ma_alkohol == true) {
-        zapisz_log(LOG_SYM_ERR, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    if (sukces) {
+        sprintf(wiadomosc, "(%d): Dowidzenia!\n",getpid());
     } else {
-        zapisz_log(LOG_DOMYSLNY, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+        sprintf(wiadomosc, "(%d): :C\n",getpid());
     }
 
-    */
-
-    operacja_wait(shm_semafory->sem_raport);
-    shm_raport->sprzedane_produkty = shm_raport->sprzedane_produkty + klient.liczba_produktow;
-    shm_raport->wszyscy_klienci = shm_raport->wszyscy_klienci + 1;
-    operacja_signal(shm_semafory->sem_raport);
-
-    sprintf(wiadomosc, "(%d): Dowidzenia!\n",getpid());
     zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger);
 
     exit(0);
@@ -194,6 +187,7 @@ void shm_init(){
         exit(1);
     }
 };
+
 void shm_destroy() {
     shmdt(shm_kolejki);
 
@@ -203,3 +197,12 @@ void shm_destroy() {
 
     shmdt(shm_raport);
 };
+
+void obsluga_sygnalu(int sig) {
+    if (sig == SIGUSR1) {
+        sukces = false;
+    } else {
+        sukces = true;
+    }
+    skasowano = 1;
+}
