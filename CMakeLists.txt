@@ -17,6 +17,7 @@ add_executable(klient
 		src/klient.c
 		src/dyskont_utils.c
 )
+target_link_libraries(klient m)
 
 add_executable(logger
 		src/logger.c

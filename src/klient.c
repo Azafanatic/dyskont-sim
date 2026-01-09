@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 #include "dyskont_utils.h"
 
 #define ILOSC_DOSTEPNYCH_PRODUKTOW 32
@@ -19,6 +20,8 @@ Dane *shm_dane;
 int shm_raport_id;
 Raport *shm_raport;
 int szybkosc_symulacji;
+int aktywni = 0;
+bool stan_sklepu;
 
 
 Produkt dostepne_produkty[32] =
@@ -41,9 +44,6 @@ int main(int argc, char *argv[]) {
     shm_init();
 
     srand(time(NULL));
-
-    int aktywni = 0;
-    bool stan_sklepu;
 
     operacja_wait(shm_semafory->sem_sklep_dane);
     szybkosc_symulacji = shm_dane->szybkosc_symulacji;
@@ -82,7 +82,8 @@ int main(int argc, char *argv[]) {
         shm_dane->ilosc_klientow = aktywni;
         operacja_signal(shm_semafory->sem_sklep_dane);
 
-        usleep((rand() % 3) * 1000000 / szybkosc_symulacji);
+        // 6 + 0-10(zmienne z czasem) + 0-6 (losowo)
+        usleep( (6 + (cos(time(NULL) * 10) + 1) * 5 + (rand() % 7)) * 150000 / szybkosc_symulacji);
     }
 
     shm_destroy();
@@ -94,7 +95,7 @@ void wykonaj_prace() {
 
     Klient klient;
     klient.liczba_produktow = MIN_PRODUKTY + rand() % (MAX_PRODUKTY - MIN_PRODUKTY + 1);
-    klient.czas_zakupow = (double) (120 + rand() % 120) / szybkosc_symulacji * 1000000;
+    klient.czas_zakupow = (double) (120 + rand() % 30 * klient.liczba_produktow) / szybkosc_symulacji * 1000000;
     klient.id = getpid();
     klient.wiek = 5 + rand() % 90;
     klient.ma_alkohol = false;
@@ -113,11 +114,11 @@ void wykonaj_prace() {
     char wiadomosc[220];
 
     sprintf(wiadomosc, "(%d): Dzien dobry!\n",klient.id);
-    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger);
 
 
     sprintf(wiadomosc, "(%d): Kupie %d rzeczy.\n",klient.id, klient.liczba_produktow);
-    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger);
 
     usleep(klient.czas_zakupow);
 
@@ -148,7 +149,7 @@ void wykonaj_prace() {
     operacja_signal(shm_semafory->sem_raport);
 
     sprintf(wiadomosc, "(%d): Dowidzenia!\n",getpid());
-    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger);
 
     exit(0);
 };

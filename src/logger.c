@@ -59,14 +59,14 @@ int main() {
     }
 
     char sciezka[64];
-    sprintf(sciezka, "logi/test.log");
+    sprintf(sciezka, "logi/log_glowny.log");
 
     int deskryptor_pliku = open(sciezka, O_WRONLY | O_CREAT, 0644);
     if (deskryptor_pliku == -1) {
         exit(1);
     }
 
-    struct Log msg;
+    Log msg;
 
     while (!koniec) {
         if (msgrcv(kolejka_id, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
@@ -114,13 +114,11 @@ int main() {
                 break;
         }
 
-        // TODO: Usunąć resetowanie koloru przy każdym logu
         printf("%s%s%s%s", kolor, prefix, msg.wiadomosc, KOLOR_DOMYSLNY);
 
         char bufor_wiadomosci[512];
         sprintf(bufor_wiadomosci, "%s%s", prefix, msg.wiadomosc);
         write(deskryptor_pliku, bufor_wiadomosci, strlen(bufor_wiadomosci));
-
     }
 
     close(deskryptor_pliku);

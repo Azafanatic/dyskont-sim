@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     shm_raport->wszyscy_klienci = 0;
     operacja_signal(shm_semafory->sem_raport);
 
-    zapisz_log(LOG_SYM_INFO, "ROZPOCZYNAM SYMULACJE\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    zapisz_log(LOG_SYM_INFO, "ROZPOCZYNAM SYMULACJE\n", shm_kolejki->kol_logger);
 
     operacja_wait(shm_semafory->sem_sklep_dane);
     if (argc >= 2) {
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 
     sprintf(wiadomosc, "Dane symulacji:\nCzas trwania:%d (sek)\t Predkosc: %d\t\n", shm_dane->dlugosc_symulacji, shm_dane->szybkosc_symulacji);
 
-    zapisz_log(LOG_SYM_INFO, wiadomosc, shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    zapisz_log(LOG_SYM_INFO, wiadomosc, shm_kolejki->kol_logger);
 
     {
         char * argumenty[PROCESY_GLOWNE] = {"logger", "kierownik", "klient", "kasa_samoobslugowa", "kasa_stacjonarna", "obsluga"};
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
         sleep(1);
     }
 
-    zapisz_log(LOG_SYM_INFO, "KONCZE SYMULACJE\n", shm_kolejki->kol_logger, shm_semafory->sem_kolejka_logger);
+    zapisz_log(LOG_SYM_INFO, "KONCZE SYMULACJE\n", shm_kolejki->kol_logger);
 
     sleep(1);
     for (int i = 0; i < PROCESY_GLOWNE; i++) {

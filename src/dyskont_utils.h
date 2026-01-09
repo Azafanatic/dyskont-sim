@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <sys/shm.h>
 
-#define MAX_KLIENCI 256
+#define MAX_KLIENCI 128
 #define MIN_PRODUKTY 3
 #define MAX_PRODUKTY 10
 #define MAX_KASY_SAMOOBSLUGOWE 6
@@ -45,11 +45,11 @@ typedef enum {
     COL_DEFAULT
 } KolorWiadomosci;
 
-struct Log {
+typedef struct {
     long typ_komunikatu;
     TypLogu typ_logu;
     char wiadomosc[256];
-};
+} Log;
 
 typedef struct {
     char nazwa[32];
@@ -107,9 +107,10 @@ int utworz_semafor(int key);
 void usun_semafor(int semid);
 void operacja_wait(int semid);
 void operacja_signal(int semid);
-void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_id, int semafor_logger);
+void zapisz_log(TypLogu typ_logu, const char* format, int kolejka_id);
 
 void zapisz_wiadomosc(KolorWiadomosci color, const char *message);
 
+int ilu_w_kolejce(int kolejka_logger_id);
 
 #endif
