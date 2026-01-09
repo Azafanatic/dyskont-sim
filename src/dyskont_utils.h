@@ -52,11 +52,20 @@ struct Log {
 };
 
 typedef struct {
+    char nazwa[32];
+    float cena;
+    bool alkohol;
+} Produkt;
+
+typedef struct {
     int id;
     int liczba_produktow;
+    int wiek;
     bool ma_alkohol;
-    int czas_zakupow;
+    double czas_zakupow;
+    Produkt produkty[MAX_PRODUKTY];
 } Klient;
+
 
 typedef struct {
     int id;
