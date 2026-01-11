@@ -10,28 +10,34 @@
 #define PROCESY_GLOWNE 6
 
 volatile sig_atomic_t koniec = 0;
-int globalny_id_klienta = 0;
-char shm_id_str[8];
+
 int shm_dane_id;
-Dane *shm_dane;
 int shm_semafory_id;
-Semafory *shm_semafory;
 int shm_kolejki_id;
-Kolejki *shm_kolejki;
 int shm_raport_id;
+Dane * shm_dane;
+Semafory *shm_semafory;
+Kolejki *shm_kolejki;
 Raport *shm_raport;
+
 pid_t pids[PROCESY_GLOWNE];
 char wiadomosc[240];
 
 void obsluga_sygnalu(int sig);
+
 void shm_init();
-void msq_init();
-void shm_destroy();
+void sem_create();
+void msq_create();
+
+void shm_close();
+void sem_destroy();
+void msq_destroy();
 
 int main(int argc, char *argv[]) {
 
     shm_init();
-    msq_init();
+    sem_create();
+    msq_create();
 
     operacja_wait(shm_semafory->sem_raport);
     shm_raport->sprzedane_produkty = 0;
@@ -84,7 +90,9 @@ int main(int argc, char *argv[]) {
         waitpid(pids[i], NULL, 0);
     }
 
-    shm_destroy();
+    msq_destroy();
+    sem_destroy();
+    shm_close();
 
     return 0;
 }
@@ -93,65 +101,39 @@ void obsluga_sygnalu(int sig) {
     if (sig == SIGINT) {
         koniec = 1;
     }
-}
+};
 
 void shm_init() {
-    shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), IPC_CREAT | 0666);
-    if (shm_semafory_id == -1) {
-        perror("shmget");
-        exit(1);
-    }
-    shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
-    if (shm_semafory == (void *)-1) {
-        perror("shmat");
-        exit(1);
-    }
+    shm_kolejki = (Kolejki*) shm_create(&shm_kolejki_id, KOLEJKI);
+    shm_semafory = (Semafory*) shm_create(&shm_semafory_id, SEMAFORY);
+    shm_dane = (Dane*) shm_create(&shm_dane_id, DANE);
+    shm_raport = (Raport*) shm_create(&shm_raport_id, RAPORT);
+};
 
+void shm_close() {
+    shm_destroy(shm_kolejki_id, shm_kolejki);
+    shm_destroy(shm_semafory_id, shm_semafory);
+    shm_destroy(shm_dane_id, shm_dane);
+    shm_destroy(shm_raport_id, shm_raport);
+};
+
+void sem_create() {
     shm_semafory->sem_otwieranie_kasy = utworz_semafor(SEM_ID_OTWIERANIE_KASY);
     shm_semafory->sem_zamykanie_kasy = utworz_semafor(SEM_ID_ZAMYKANIE_KASY);
     shm_semafory->sem_raport = utworz_semafor(SEM_ID_RAPORT);
     shm_semafory->sem_kolejki = utworz_semafor(SEM_ID_KOLEJKI);
     shm_semafory->sem_sklep_dane = utworz_semafor(SEM_ID_SKLEP_DANE);
+};
 
+void sem_destroy() {
+    usun_semafor(shm_semafory->sem_otwieranie_kasy);
+    usun_semafor(shm_semafory->sem_zamykanie_kasy);
+    usun_semafor(shm_semafory->sem_raport);
+    usun_semafor(shm_semafory->sem_kolejki);
+    usun_semafor(shm_semafory->sem_sklep_dane);
+};
 
-
-    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), IPC_CREAT | 0666);
-    if (shm_kolejki_id == -1) {
-        perror("shmget");
-        exit(1);
-    }
-    shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
-    if (shm_kolejki == (void *)-1) {
-        perror("shmat");
-        exit(1);
-    }
-
-
-
-    shm_dane_id = shmget(SHM_DANE, sizeof(Dane), IPC_CREAT | 0666);
-    if (shm_dane_id == -1) {
-        perror("shmget");
-        exit(1);
-    }
-    shm_dane = (Dane *)shmat(shm_dane_id, NULL, 0);
-    if (shm_dane == (void *)-1) {
-        perror("shmat");
-        exit(1);
-    }
-
-
-    shm_raport_id = shmget(SHM_RAPORT, sizeof(Raport), IPC_CREAT | 0666);
-    if (shm_raport_id == -1) {
-        exit(1);
-    }
-
-    shm_raport = (Raport *)shmat(shm_raport_id, NULL, 0);
-    if (shm_raport == (void *)-1) {
-        exit(1);
-    }
-}
-
-void msq_init() {
+void msq_create() {
     int msq_logger_id = msgget(MSQ_LOG_ID, IPC_CREAT | 0600);
     if (msq_logger_id == -1) {
         exit(1);
@@ -165,28 +147,10 @@ void msq_init() {
     shm_kolejki->kol_logger = msq_logger_id;
     shm_kolejki->kol_kasy_sam = msq_kasy_sam_id;
     operacja_signal(shm_semafory->sem_kolejki);
-}
+};
 
-void shm_destroy() {
-    usun_semafor(shm_semafory->sem_otwieranie_kasy);
-    usun_semafor(shm_semafory->sem_zamykanie_kasy);
-    usun_semafor(shm_semafory->sem_raport);
-    usun_semafor(shm_semafory->sem_kolejki);
-    usun_semafor(shm_semafory->sem_sklep_dane);
-
+void msq_destroy() {
     msgctl(shm_kolejki->kol_logger, IPC_RMID, NULL);
     msgctl(shm_kolejki->kol_kasy_sam, IPC_RMID, NULL);
-
-    shmdt(shm_kolejki);
-    shmctl(shm_kolejki_id, IPC_RMID, NULL);
-
-    shmdt(shm_semafory);
-    shmctl(shm_semafory_id, IPC_RMID, NULL);
-
-    shmdt(shm_dane);
-    shmctl(shm_dane_id, IPC_RMID, NULL);
-
-    shmdt(shm_raport);
-    shmctl(shm_raport_id, IPC_RMID, NULL);
 };
 

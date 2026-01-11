@@ -8,5 +8,5 @@ int main(int argc, char *argv[]) {
 }
 
 void test(){
-    //zapisz_wiadomosc(COL_MAGENTA, "obsluga - test\n");
+
 };

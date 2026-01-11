@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/msg.h>
 #include <errno.h>
@@ -77,3 +78,92 @@ void stan_w_kolejce(Klient klient, int msq_id) {
     }
 }
 
+
+void * shm_att(int * id, SekcjeIPC typ_sekcji) {
+    key_t klucz;
+    size_t rozmiar;
+    void *wskaznik;
+
+    switch (typ_sekcji) {
+        case SEMAFORY:
+            klucz = SHM_SEMAFORY;
+            rozmiar = sizeof(Semafory);
+            break;
+        case KOLEJKI:
+            klucz = SHM_KOLEJKI;
+            rozmiar = sizeof(Kolejki);
+            break;
+        case DANE:
+            klucz = SHM_DANE;
+            rozmiar = sizeof(Dane);
+            break;
+        case RAPORT:
+            klucz = SHM_RAPORT;
+            rozmiar = sizeof(Raport);
+            break;
+        default:
+            break;
+    }
+
+    *id = shmget(klucz, rozmiar, 0666);
+    if (*id == -1) {
+        perror("shmget");
+        exit(1);
+    }
+
+    wskaznik = shmat(*id, NULL, 0);
+    if (wskaznik == (void *)-1) {
+        perror("shmat");
+        exit(1);
+    }
+    return wskaznik;
+};
+
+void * shm_create(int * id, SekcjeIPC typ_sekcji) {
+    key_t klucz;
+    size_t rozmiar;
+    void *wskaznik;
+
+    switch (typ_sekcji) {
+        case SEMAFORY:
+            klucz = SHM_SEMAFORY;
+            rozmiar = sizeof(Semafory);
+            break;
+        case KOLEJKI:
+            klucz = SHM_KOLEJKI;
+            rozmiar = sizeof(Kolejki);
+            break;
+        case DANE:
+            klucz = SHM_DANE;
+            rozmiar = sizeof(Dane);
+            break;
+        case RAPORT:
+            klucz = SHM_RAPORT;
+            rozmiar = sizeof(Raport);
+            break;
+        default:
+            break;
+    }
+
+    *id = shmget(klucz, rozmiar, IPC_CREAT | 0666);
+    if (*id == -1) {
+        perror("shmget");
+        exit(1);
+    }
+
+    wskaznik = shmat(*id, NULL, 0);
+    if (wskaznik == (void *)-1) {
+        perror("shmat");
+        exit(1);
+    }
+    return wskaznik;
+};
+
+void shm_destroy(int id, void * data) {
+    shmdt(data);
+    shmctl(id, IPC_RMID, NULL);
+};
+
+void shm_det(void * data) {
+    shmdt(data);
+};

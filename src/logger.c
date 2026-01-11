@@ -19,8 +19,9 @@ int kolejka_id;
 sig_atomic_t koniec = 0;
 
 void obsluga_sygnalu(int sig);
+
 void shm_init();
-void shm_destroy();
+void shm_close();
 
 int main() {
 
@@ -29,6 +30,7 @@ int main() {
     mkdir("logi", 0755);
 
     shm_init();
+
     operacja_wait(shm_semafory->sem_kolejki);
     kolejka_id = shm_kolejki->kol_logger;
     operacja_signal(shm_semafory->sem_kolejki);
@@ -98,7 +100,7 @@ int main() {
 
     close(deskryptor_pliku);
 
-    shm_destroy();
+    shm_close();
 
     exit(0);
 }
@@ -110,30 +112,13 @@ void obsluga_sygnalu(int sig) {
 }
 
 void shm_init() {
-    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), 0666);
-    if (shm_kolejki_id == -1) {
-        perror("shmget");
-        exit(1);
-    }
+    shm_kolejki = (Kolejki*) shm_att(&shm_kolejki_id, KOLEJKI);
+    shm_semafory = (Semafory*) shm_att(&shm_semafory_id, SEMAFORY);
+};
 
-    shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
-    if (shm_kolejki == (void *)-1) {
-        perror("shmat");
-        exit(1);
-    }
+void shm_close() {
+    shm_destroy(shm_kolejki_id, shm_kolejki);
+    shm_destroy(shm_semafory_id, shm_semafory);
+};
 
-    shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), 0666);
-    if (shm_semafory_id == -1) {
-        exit(1);
-    }
-
-    shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
-    if (shm_semafory == (void *)-1) {
-        exit(1);
-    }
-}
-
-void shm_destroy() {
-    shmdt(shm_kolejki);
-}
 

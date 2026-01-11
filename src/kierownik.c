@@ -3,33 +3,33 @@
 #include <signal.h>
 #include <stdio.h>
 #include <fcntl.h>
-#include <string.h>
 #include <sys/wait.h>
 #include "dyskont_utils.h"
 
 int shm_kolejki_id;
 int shm_semafory_id;
+int shm_dane_id;
+int shm_raport_id;
 Kolejki *shm_kolejki;
 Semafory *shm_semafory;
-int shm_dane_id;
 Dane *shm_dane;
-int shm_raport_id;
 Raport *shm_raport;
+
 int szybkosc_symulacji;
+
 char wiadomosc[320];
 
 void wykonaj_prace();
 void shm_init();
-void shm_destroy();
+void shm_close();
 
 int main(int argc, char *argv[]) {
 
     shm_init();
     wykonaj_prace();
-    shm_destroy();
+    shm_close();
 
     exit(0);
-
 }
 
 void wykonaj_prace() {
@@ -90,53 +90,15 @@ void wykonaj_prace() {
 };
 
 void shm_init() {
-
-    shm_kolejki_id = shmget(SHM_KOLEJKI, sizeof(Kolejki), 0666);
-    if (shm_kolejki_id == -1) {
-        exit(1);
-    }
-    shm_kolejki = (Kolejki *)shmat(shm_kolejki_id, NULL, 0);
-    if (shm_kolejki == (void *)-1) {
-        exit(1);
-    }
-
-    shm_semafory_id = shmget(SHM_SEMAFORY, sizeof(Semafory), 0666);
-    if (shm_semafory_id == -1) {
-        exit(1);
-    }
-
-    shm_semafory = (Semafory *)shmat(shm_semafory_id, NULL, 0);
-    if (shm_semafory == (void *)-1) {
-        exit(1);
-    }
-
-    shm_dane_id = shmget(SHM_DANE, sizeof(Dane), 0666);
-    if (shm_dane_id == -1) {
-        exit(1);
-    }
-
-    shm_dane = (Dane *)shmat(shm_dane_id, NULL, 0);
-    if (shm_dane == (void *)-1) {
-        exit(1);
-    }
-
-    shm_raport_id = shmget(SHM_RAPORT, sizeof(Raport), 0666);
-    if (shm_raport_id == -1) {
-        exit(1);
-    }
-
-    shm_raport = (Raport *)shmat(shm_raport_id, NULL, 0);
-    if (shm_raport == (void *)-1) {
-        exit(1);
-    }
+    shm_kolejki = (Kolejki*) shm_att(&shm_kolejki_id, KOLEJKI);
+    shm_semafory = (Semafory*) shm_att(&shm_semafory_id, SEMAFORY);
+    shm_dane = (Dane*) shm_att(&shm_dane_id, DANE);
+    shm_raport = (Raport*) shm_att(&shm_raport_id, RAPORT);
 };
 
-void shm_destroy() {
-    shmdt(shm_kolejki);
-
-    shmdt(shm_semafory);
-
-    shmdt(shm_dane);
-
-    shmdt(shm_raport);
+void shm_close() {
+    shm_destroy(shm_kolejki_id, shm_kolejki);
+    shm_destroy(shm_semafory_id, shm_semafory);
+    shm_destroy(shm_dane_id, shm_dane);
+    shm_destroy(shm_raport_id, shm_raport);
 };

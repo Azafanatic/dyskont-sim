@@ -27,6 +27,13 @@
 #define MSQ_KASY_SAM_ID 6841
 
 typedef enum {
+    KOLEJKI,
+    SEMAFORY,
+    DANE,
+    RAPORT,
+} SekcjeIPC;
+
+typedef enum {
     LOG_DOMYSLNY,
     LOG_SYM_INFO,
     LOG_SYM_OSTRZEZENIE,
@@ -105,6 +112,11 @@ void usun_semafor(int semid);
 
 void operacja_wait(int semid);
 void operacja_signal(int semid);
+
+void * shm_att(int * id, SekcjeIPC typ_sekcji);
+void * shm_create(int * id, SekcjeIPC typ_sekcji);
+void shm_det(void * data);
+void shm_destroy(int id, void * data);
 
 void zapisz_log(TypLogu typ_logu, const char* format, int msq_id);
 
