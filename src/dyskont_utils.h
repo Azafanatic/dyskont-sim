@@ -23,7 +23,6 @@
 #define SHM_DANE 4583
 #define SHM_RAPORT 4584
 
-
 #define MSQ_LOG_ID 6840
 #define MSQ_KASY_SAM_ID 6841
 
@@ -38,16 +37,6 @@ typedef enum {
     LOG_KLIENT,
     LOG_OBSLUGA,
 } TypLogu;
-
-typedef enum {
-    COL_RED,
-    COL_GREEN,
-    COL_BLUE,
-    COL_YELLOW,
-    COL_CYAN,
-    COL_MAGENTA,
-    COL_DEFAULT
-} KolorWiadomosci;
 
 typedef struct {
     long typ_komunikatu;
@@ -113,11 +102,11 @@ typedef struct {
 
 int utworz_semafor(int key);
 void usun_semafor(int semid);
+
 void operacja_wait(int semid);
 void operacja_signal(int semid);
-void zapisz_log(TypLogu typ_logu, const char* format, int msq_id);
 
-void zapisz_wiadomosc(KolorWiadomosci color, const char *message);
+void zapisz_log(TypLogu typ_logu, const char* format, int msq_id);
 
 int ilu_w_kolejce(int msq_id);
 void stan_w_kolejce(Klient klient, int msq_id);

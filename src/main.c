@@ -58,11 +58,11 @@ int main(int argc, char *argv[]) {
             sprintf(argZero, "./%s", argumenty[i]);
 
             if (pids[i] < 0) {
-                zapisz_wiadomosc(COL_RED, "Błąd forka\n");
+                perror("Błąd forka\n");
                 exit(1);
             } else if (pids[i] == 0) {
                 execlp(argZero, argumenty[i], (char *)NULL);
-                zapisz_wiadomosc(COL_RED, "Błąd exec\n");
+                perror("Błąd exec\n");
                 exit(1);
             }
         }
