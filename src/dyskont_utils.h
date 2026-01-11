@@ -51,10 +51,24 @@ typedef struct {
     char wiadomosc[320];
 } Log;
 
+typedef enum {
+    ALKOHOLE,
+    WEDLINY,
+    OWOCE,
+    WAZYWA,
+    PIECZYWO,
+    NABIAL,
+    SOKI,
+    NAPOJE_GAZOWANE,
+    SLODYCZE,
+    SUCHE,
+    INNE
+}KategorieProduktow;
+
 typedef struct {
     char nazwa[32];
     float cena;
-    bool alkohol;
+    KategorieProduktow kategoria;
 } Produkt;
 
 typedef struct {

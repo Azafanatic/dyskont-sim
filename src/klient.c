@@ -21,7 +21,6 @@ Semafory *shm_semafory;
 Dane *shm_dane;
 Raport *shm_raport;
 
-int szybkosc_symulacji;
 int aktywni = 0;
 
 bool stan_sklepu;
@@ -30,14 +29,14 @@ volatile sig_atomic_t skasowano = 0;
 bool sukces;
 
 Produkt dostepne_produkty[32] =
-{{"Piwo", 2.99, true}, {"Wino", 39.99, true}, {"Wodka", 44.99, true}, {"Jagermeister", 69.99, true},
-{"Whisky", 74.99, true}, {"Maslo", 9.99, false}, {"Sok jablkowy", 5.49, false}, {"Sok pomaranczowy", 6.99, false},
-{"Chleb", 4.29, false}, {"Mleko", 3.19, false}, {"Jajka", 8.99, false}, {"Ser zolty", 19.99, false},
-{"Szynka", 24.99, false}, {"Kawa", 15.99, false}, {"Herbata", 6.49, false}, {"Cukier", 3.79, false},
-{"Makaron", 5.29, false}, {"Ryz", 4.79, false}, {"Olej", 12.99, false}, {"Woda mineralna", 2.49, false},
-{"Cola", 4.99, false}, {"Czekolada", 5.99, false}, {"Batonik", 2.79, false}, {"Jogurt", 2.29, false},
-{"Dzem", 7.49, false}, {"Ketchup", 6.99, false}, {"Musztarda", 4.99, false}, {"Ciasteczka", 5.49, false},
-{"Mak", 3.99, false}, {"Orzechy", 14.99, false}, {"Miod", 18.99, false}, {"Przyprawy", 3.49, false}};
+{{"Piwo", 2.99, ALKOHOLE}, {"Wino", 39.99, ALKOHOLE}, {"Wodka", 44.99, ALKOHOLE}, {"Jagermeister", 69.99, ALKOHOLE},
+{"Whisky", 74.99, ALKOHOLE}, {"Maslo", 9.99, NABIAL}, {"Sok jablkowy", 5.49, SOKI}, {"Sok pomaranczowy", 6.99, SOKI},
+{"Chleb", 4.29, PIECZYWO}, {"Mleko", 3.19, NABIAL}, {"Jablko", 1.99, OWOCE}, {"Ser zolty", 19.99, NABIAL},
+{"Szynka", 24.99, WEDLINY}, {"Kawa", 15.99, SUCHE}, {"Herbata", 6.49, INNE}, {"Cukier", 3.79, SUCHE},
+{"Makaron", 5.29, SUCHE}, {"Ryz", 4.79, SUCHE}, {"Olej", 12.99, INNE}, {"Woda mineralna", 2.49, INNE},
+{"Cola", 4.99, NAPOJE_GAZOWANE}, {"Czekolada", 5.99, SLODYCZE}, {"Batonik", 2.79, SLODYCZE}, {"Jogurt", 2.29, NABIAL},
+{"Dzem", 7.49, INNE}, {"Ketchup", 6.99, INNE}, {"Musztarda", 4.99, INNE}, {"Ciasteczka", 5.49, SLODYCZE},
+{"Mak", 3.99, INNE}, {"Orzechy", 14.99, INNE}, {"Miod", 18.99, INNE}, {"Przyprawy", 3.49, SUCHE}};
 
 
 void wykonaj_prace();
@@ -52,10 +51,6 @@ int main(int argc, char *argv[]) {
     shm_init();
 
     srand(time(NULL));
-
-    operacja_wait(shm_semafory->sem_sklep_dane);
-    szybkosc_symulacji = shm_dane->szybkosc_symulacji;
-    operacja_signal(shm_semafory->sem_sklep_dane);
 
     while (!koniec) {
 
@@ -90,8 +85,7 @@ int main(int argc, char *argv[]) {
         shm_dane->ilosc_klientow = aktywni;
         operacja_signal(shm_semafory->sem_sklep_dane);
 
-        // 6 + 0-10(zmienne z czasem) + 0-6 (losowo)
-        usleep( (6 + (cos(time(NULL) * 10) + 1) * 5 + (rand() % 7)) * 150000 / szybkosc_symulacji);
+        usleep( (6 + (cos(time(NULL) * 10) + 1) * 5 + (rand() % 7)) * 150000 / shm_dane->szybkosc_symulacji);
     }
 
     shm_close();
@@ -107,20 +101,12 @@ void wykonaj_prace() {
 
     Klient klient;
     klient.liczba_produktow = MIN_PRODUKTY + rand() % (MAX_PRODUKTY - MIN_PRODUKTY + 1);
-    klient.czas_zakupow = (double) (120 + rand() % 30 * klient.liczba_produktow) / szybkosc_symulacji * 1000000;
+    klient.czas_zakupow = (double) (120 + rand() % 30 * klient.liczba_produktow) / shm_dane->szybkosc_symulacji * 1000000;
     klient.id = getpid();
     klient.wiek = 5 + rand() % 90;
-    klient.ma_alkohol = false;
 
     for (int i = 0; i < klient.liczba_produktow; i++) {
         klient.produkty[i] = dostepne_produkty[rand() % ILOSC_DOSTEPNYCH_PRODUKTOW];
-    }
-
-    for (int i = 0; i < klient.liczba_produktow; i++) {
-        if (klient.produkty[i].alkohol == true) {
-            klient.ma_alkohol = true;
-            break;
-        }
     }
 
     sprintf(wiadomosc, "(%d): Dzien dobry!\n",klient.id);

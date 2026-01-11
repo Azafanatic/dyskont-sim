@@ -20,9 +20,6 @@ Semafory *shm_semafory;
 Dane *shm_dane;
 Raport *shm_raport;
 
-int szybkosc_symulacji;
-int kolejka_id;
-
 char wiadomosc[320];
 char wiadomosc_buf[80];
 
@@ -34,17 +31,10 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, obsluga_sygnalu);
 
     shm_init();
-    operacja_wait(shm_semafory->sem_kolejki);
-    kolejka_id = shm_kolejki->kol_kasy_sam;
-    operacja_signal(shm_semafory->sem_kolejki);
-
-    operacja_wait(shm_semafory->sem_sklep_dane);
-    szybkosc_symulacji = shm_dane->szybkosc_symulacji;
-    operacja_signal(shm_semafory->sem_sklep_dane);
 
     KlientMSQ msg;
     while (!koniec) {
-        if (msgrcv(kolejka_id, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
+        if (msgrcv(shm_kolejki->kol_kasy_sam, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
             break;
         }
         strcpy(wiadomosc, " ");
@@ -58,9 +48,18 @@ int main(int argc, char *argv[]) {
         sprintf(wiadomosc_buf, "\n");
         strcat(wiadomosc,wiadomosc_buf);
 
-        usleep(msg.klient.liczba_produktow * 1000000 / szybkosc_symulacji);
+        usleep(msg.klient.liczba_produktow * 1000000 / shm_dane->szybkosc_symulacji);
 
-        if (msg.klient.ma_alkohol == true && msg.klient.wiek < 18) {
+        bool alkohol = false;
+
+        for (int i = 0; i < msg.klient.liczba_produktow; i++) {
+            if (msg.klient.produkty[i].kategoria == ALKOHOLE) {
+                alkohol = true;
+                break;
+            }
+        }
+
+        if (alkohol && msg.klient.wiek < 18) {
             sprintf(wiadomosc_buf, "Masz tylko %d lat, nie moge Ci tego sprzedac.\n", msg.klient.wiek);
             strcat(wiadomosc,wiadomosc_buf);
             zapisz_log(LOG_KASA_SAM, wiadomosc, shm_kolejki->kol_logger);

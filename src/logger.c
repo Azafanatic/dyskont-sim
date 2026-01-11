@@ -14,7 +14,6 @@ int shm_kolejki_id;
 int shm_semafory_id;
 Kolejki *shm_kolejki;
 Semafory *shm_semafory;
-int kolejka_id;
 
 sig_atomic_t koniec = 0;
 
@@ -31,10 +30,6 @@ int main() {
 
     shm_init();
 
-    operacja_wait(shm_semafory->sem_kolejki);
-    kolejka_id = shm_kolejki->kol_logger;
-    operacja_signal(shm_semafory->sem_kolejki);
-
     char sciezka[64];
     sprintf(sciezka, "logi/log_glowny.log");
 
@@ -46,7 +41,7 @@ int main() {
     Log msg;
 
     while (!koniec) {
-        if (msgrcv(kolejka_id, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
+        if (msgrcv(shm_kolejki->kol_logger, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
             break;
         }
 
