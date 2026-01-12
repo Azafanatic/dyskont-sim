@@ -8,39 +8,39 @@ set(CMAKE_C_COMPILER "gcc")
 
 include_directories(include)
 
-add_executable(kierownik
-		src/kierownik.c
-		src/dyskont_utils.c
+add_executable(manager
+		src/manager.c
+		src/utils.c
 )
-target_link_libraries(kierownik m)
+target_link_libraries(manager m)
 
-add_executable(klient
-		src/klient.c
-		src/dyskont_utils.c
+add_executable(client
+		src/client.c
+		src/utils.c
 )
-target_link_libraries(klient m)
+target_link_libraries(client m)
 
 add_executable(logger
 		src/logger.c
-		src/dyskont_utils.c
+		src/utils.c
 )
 
-add_executable(dyskont
+add_executable(sim
 		src/main.c
-		src/dyskont_utils.c
+		src/utils.c
 )
 
-add_executable(kasa_samoobslugowa
-		src/kasa_samoobslugowa.c
-		src/dyskont_utils.c
+add_executable(self_service_checkout
+		src/self_service_checkout.c
+		src/utils.c
 )
 
-add_executable(kasa_stacjonarna
-		src/kasa_stacjonarna.c
-		src/dyskont_utils.c
+add_executable(checkout
+		src/checkout.c
+		src/utils.c
 )
 
-add_executable(obsluga
-		src/obsluga.c
-		src/dyskont_utils.c
+add_executable(staff
+		src/staff.c
+		src/utils.c
 )

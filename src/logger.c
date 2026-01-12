@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
@@ -8,88 +9,88 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include "logger.h"
-#include "dyskont_utils.h"
+#include "utils.h"
 
-int shm_kolejki_id;
-int shm_semafory_id;
-Kolejki *shm_kolejki;
-Semafory *shm_semafory;
+int shm_semaphores_id;
+int shm_queues_id;
+Semaphores *shm_semaphores;
+Queues *shm_queues;
 
-sig_atomic_t koniec = 0;
+sig_atomic_t stop_sim = 0;
 
-void obsluga_sygnalu(int sig);
+void sigint_handler(int sig);
 
 void shm_init();
 void shm_close();
 
 int main() {
 
-    signal(SIGINT, obsluga_sygnalu);
+    signal(SIGINT, sigint_handler);
 
     mkdir("logi", 0755);
 
     shm_init();
 
     char sciezka[64];
-    sprintf(sciezka, "logi/log_glowny.log");
+    sprintf(sciezka, "logi/log_%d.log", (int)time(NULL));
 
     int deskryptor_pliku = open(sciezka, O_WRONLY | O_CREAT, 0644);
     if (deskryptor_pliku == -1) {
         exit(1);
     }
 
-    Log msg;
+    LogMessage msg;
 
-    while (!koniec) {
-        if (msgrcv(shm_kolejki->kol_logger, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
+    while (!stop_sim) {
+        if (msgrcv(shm_queues->msq_logger, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
             break;
         }
 
         const char* prefix = "";
-        const char* kolor = KOLOR_INFO;
+        const char* colour = COL_INFO;
 
-        switch (msg.typ_logu) {
-            case LOG_SYM_INFO:
+        switch (msg.log_type) {
+            case LOG_SIM_INFO:
                 prefix = "[INFO] ";
-                kolor = KOLOR_INFO;
+                colour = COL_INFO;
                 break;
-            case LOG_SYM_OSTRZEZENIE: prefix = "[OSTRZERZENIE] ";
-            kolor = KOLOR_OSTRZEZENIE;
-            break;
-            case LOG_SYM_ERR:
+            case LOG_SIM_WARN: prefix = "[OSTRZERZENIE] ";
+                colour = COL_WARN;
+                break;
+            case LOG_SIM_ERR:
                 prefix = "[ERR] ";
-                kolor = KOLOR_ERR;
+                colour = COL_ERR;
                 break;
-            case LOG_DOMYSLNY:
+            case LOG_DEF:
                 prefix = "";
-                kolor = KOLOR_DOMYSLNY;
+                colour = COL_DEF;
                 break;
-            case LOG_KIEROWNIK:
+            case LOG_MANAGER:
                 prefix = "[KIEROWNIK] ";
-                kolor = KOLOR_KIEROWNIK;
+                colour = COL_MANAGER;
                 break;
-            case LOG_KLIENT:
+            case LOG_CLIENT:
                 prefix = "[KLIENT] ";
-                kolor = KOLOR_KLIENT;
+                colour = COL_CLIENT;
                 break;
-            case LOG_OBSLUGA:
+            case LOG_STAFF:
                 prefix = "[OBSLUGA] ";
-                kolor = KOLOR_OBSLUGA;
+                colour = COL_STAFF;
                 break;
-            case LOG_KASA_SAM:
+            case LOG_SS_CHECKOUT:
                 prefix = "[KASA SAMOOBSLUGOWA] ";
-                kolor = KOLOR_KASA_SAM;
+                colour = COL_SS_CHECKOUT;
                 break;
-            case LOG_KASA_STAC:
+            case LOG_CHECKOUT:
                 prefix = "[KASA STACJONARNA] ";
-                kolor = KOLOR_KASA_STAC;
+                colour = COL_CHECKOUT;
                 break;
         }
 
-        printf("%s%s%s%s", kolor, prefix, msg.wiadomosc, KOLOR_DOMYSLNY);
+        printf("%s%s%s%s", colour, prefix, msg.message, COL_DEF);
 
         char bufor_wiadomosci[512];
-        sprintf(bufor_wiadomosci, "%s%s", prefix, msg.wiadomosc);
+        sprintf(bufor_wiadomosci, "%s%s", prefix, msg.message);
         write(deskryptor_pliku, bufor_wiadomosci, strlen(bufor_wiadomosci));
     }
 
@@ -100,20 +101,20 @@ int main() {
     exit(0);
 }
 
-void obsluga_sygnalu(int sig) {
+void sigint_handler(int sig) {
     if (sig == SIGINT) {
-        koniec = 1;
+        stop_sim = 1;
     }
 }
 
 void shm_init() {
-    shm_kolejki = (Kolejki*) shm_att(&shm_kolejki_id, KOLEJKI);
-    shm_semafory = (Semafory*) shm_att(&shm_semafory_id, SEMAFORY);
+    shm_queues = (Queues*) shm_att(&shm_queues_id, QUEUES);
+    shm_semaphores = (Semaphores*) shm_att(&shm_semaphores_id, SEMAPHORES);
 };
 
 void shm_close() {
-    shm_destroy(shm_kolejki_id, shm_kolejki);
-    shm_destroy(shm_semafory_id, shm_semafory);
+    shm_det(shm_queues);
+    shm_det(shm_semaphores);
 };
 
 

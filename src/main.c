@@ -5,27 +5,27 @@
 #include <unistd.h>
 #include <sys/msg.h>
 #include <sys/ipc.h>
-#include "dyskont_utils.h"
+#include "utils.h"
 
-#define PROCESY_GLOWNE 6
+#define MAIN_PROCESSES 6
 
-volatile sig_atomic_t koniec = 0;
+volatile sig_atomic_t stop_sim = 0;
 
-int shm_dane_id;
-int shm_semafory_id;
-int shm_kolejki_id;
-int shm_raport_id;
-int shm_kasy_sam_id;
-Dane * shm_dane;
-Semafory *shm_semafory;
-Kolejki *shm_kolejki;
-Raport *shm_raport;
-KasySam *shm_kasy_sam;
+int shm_sim_settings_id;
+int shm_store_data_id;
+int shm_semaphores_id;
+int shm_queues_id;
+int shm_ss_checkouts_id;
+SimSettings *shm_sim_settings;
+StoreData *shm_store_data;
+Semaphores *shm_semaphores;
+Queues *shm_queues;
+SelfServiceCheckouts *shm_ss_checkouts;
 
-pid_t pids[PROCESY_GLOWNE];
-char wiadomosc[240];
+pid_t pids[MAIN_PROCESSES];
+char logger_message[240];
 
-void obsluga_sygnalu(int sig);
+void sigint_handler(int sig);
 
 void shm_init();
 void sem_create();
@@ -41,54 +41,54 @@ int main(int argc, char *argv[]) {
     sem_create();
     msq_create();
 
-    operacja_wait(shm_semafory->sem_raport);
-    shm_raport->sprzedane_produkty = 0;
-    shm_raport->wszyscy_klienci = 0;
-    operacja_signal(shm_semafory->sem_raport);
+    operation_wait(shm_semaphores->sem_store_data);
+    shm_store_data->products_sold = 0;
+    shm_store_data->all_clients = 0;
+    operation_signal(shm_semaphores->sem_store_data);
 
-    operacja_wait(shm_semafory->sem_sklep_dane);
-    shm_dane->dlugosc_symulacji = (argc >= 2) ? atoi(argv[1]) : 3600;
-    shm_dane->szybkosc_symulacji = (argc >= 3) ? atoi(argv[2]) : 60;
-    operacja_signal(shm_semafory->sem_sklep_dane);
+    operation_wait(shm_semaphores->sem_sim_settings);
+    shm_sim_settings->sim_length = (argc >= 2) ? atoi(argv[1]) : 3600;
+    shm_sim_settings->sim_speed = (argc >= 3) ? atoi(argv[2]) : 60;
+    operation_signal(shm_semaphores->sem_sim_settings);
 
-    zapisz_log(LOG_SYM_INFO, "ROZPOCZYNAM SYMULACJE\n", shm_kolejki->kol_logger);
-    sprintf(wiadomosc, "Dane symulacji:\nCzas trwania:%d (sek)\t Predkosc: %d\t\n", shm_dane->dlugosc_symulacji, shm_dane->szybkosc_symulacji);
-    zapisz_log(LOG_SYM_INFO, wiadomosc, shm_kolejki->kol_logger);
+    save_a_log(LOG_SIM_INFO, "ROZPOCZYNAM SYMULACJE\n", shm_queues->msq_logger);
+    sprintf(logger_message, "Dane symulacji:\nCzas trwania:%d (sek)\t Predkosc: %d\t\n", shm_sim_settings->sim_length, shm_sim_settings->sim_speed);
+    save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
 
     {
-        char * argumenty[PROCESY_GLOWNE] = {"logger", "kierownik", "klient", "kasa_samoobslugowa", "kasa_stacjonarna", "obsluga"};
-        char argZero[32];
-        char blad[128];
 
-        for (int i = 0; i < PROCESY_GLOWNE; i++) {
+        char *process_names[MAIN_PROCESSES] = {"logger", "manager", "client", "self_service_checkout", "checkout", "staff"};
+        char exec_path[32];
+
+        for (int i = 0; i < MAIN_PROCESSES; i++) {
             pids[i] = fork();
 
-            sprintf(argZero, "./%s", argumenty[i]);
+            sprintf(exec_path, "./%s", process_names[i]);
 
             if (pids[i] < 0) {
                 perror("Błąd forka\n");
                 exit(1);
             } else if (pids[i] == 0) {
-                execlp(argZero, argumenty[i], (char *)NULL);
+                execlp(exec_path, process_names[i], (char *)NULL);
                 perror("Błąd exec\n");
                 exit(1);
             }
         }
     }
 
-    signal(SIGINT, obsluga_sygnalu);
+    signal(SIGINT, sigint_handler);
 
-    while (!koniec) {
+    while (!stop_sim) {
         sleep(1);
     }
 
-    zapisz_log(LOG_SYM_INFO, "KONCZE SYMULACJE\n", shm_kolejki->kol_logger);
+    save_a_log(LOG_SIM_INFO, "KONCZE SYMULACJE\n", shm_queues->msq_logger);
 
     sleep(1);
-    for (int i = 0; i < PROCESY_GLOWNE; i++) {
+    for (int i = 0; i < MAIN_PROCESSES; i++) {
         kill(pids[i], SIGINT);
     }
-    for (int i = 0; i < PROCESY_GLOWNE; i++) {
+    for (int i = 0; i < MAIN_PROCESSES; i++) {
         waitpid(pids[i], NULL, 0);
     }
 
@@ -99,64 +99,61 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void obsluga_sygnalu(int sig) {
+void sigint_handler(int sig) {
     if (sig == SIGINT) {
-        koniec = 1;
+        stop_sim = 1;
     }
 };
 
 void shm_init() {
-    shm_kolejki = (Kolejki*) shm_create(&shm_kolejki_id, KOLEJKI);
-    shm_semafory = (Semafory*) shm_create(&shm_semafory_id, SEMAFORY);
-    shm_dane = (Dane*) shm_create(&shm_dane_id, DANE);
-    shm_raport = (Raport*) shm_create(&shm_raport_id, RAPORT);
-    shm_kasy_sam = (KasySam*) shm_create(&shm_kasy_sam_id, KASY_SAM);
+    shm_queues = (Queues*) shm_create(&shm_queues_id, QUEUES);
+    shm_semaphores = (Semaphores*) shm_create(&shm_semaphores_id, SEMAPHORES);
+    shm_store_data = (StoreData*) shm_create(&shm_store_data_id, STORE_DATA);
+    shm_sim_settings = (SimSettings*) shm_create(&shm_sim_settings_id, SIM_SETTINGS);
+    shm_ss_checkouts = (SelfServiceCheckouts*) shm_create(&shm_ss_checkouts_id, SS_CHECKOUTS);
 
-    for (int i = 0; i < MAX_KASY_SAM; i++) {
-        shm_kasy_sam[i].kasa->otwarta = false;
+    for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
+        shm_ss_checkouts[i].checkout->open = false;
     }
 };
 
 void shm_close() {
-    shm_destroy(shm_kolejki_id, shm_kolejki);
-    shm_destroy(shm_semafory_id, shm_semafory);
-    shm_destroy(shm_dane_id, shm_dane);
-    shm_destroy(shm_raport_id, shm_raport);
-    shm_destroy(shm_kasy_sam_id, shm_kasy_sam);
+    shm_destroy(shm_queues_id, shm_queues);
+    shm_destroy(shm_semaphores_id, shm_semaphores);
+    shm_destroy(shm_store_data_id, shm_store_data);
+    shm_destroy(shm_sim_settings_id, shm_sim_settings);
+    shm_destroy(shm_ss_checkouts_id, shm_ss_checkouts);
 };
 
 void sem_create() {
-    shm_semafory->sem_kasy = utworz_semafor(SEM_ID_KASY);
-    shm_semafory->sem_raport = utworz_semafor(SEM_ID_RAPORT);
-    shm_semafory->sem_kolejki = utworz_semafor(SEM_ID_KOLEJKI);
-    shm_semafory->sem_sklep_dane = utworz_semafor(SEM_ID_SKLEP_DANE);
+    shm_semaphores->sem_queues = create_a_semaphore(SEM_ID_QUEUES);
+    shm_semaphores->sem_store_data = create_a_semaphore(SEM_ID_STORE_DATA);
+    shm_semaphores->sem_checkouts = create_a_semaphore(SEM_ID_CHECKOUTS);
+    shm_semaphores->sem_sim_settings = create_a_semaphore(SEM_ID_SIM_SETTINGS);
 };
 
 void sem_destroy() {
-    usun_semafor(shm_semafory->sem_kasy);
-    usun_semafor(shm_semafory->sem_raport);
-    usun_semafor(shm_semafory->sem_kolejki);
-    usun_semafor(shm_semafory->sem_sklep_dane);
+    del_a_semaphore(shm_semaphores->sem_queues);
+    del_a_semaphore(shm_semaphores->sem_store_data);
+    del_a_semaphore(shm_semaphores->sem_sim_settings);
+    del_a_semaphore(shm_semaphores->sem_checkouts);
 };
 
 void msq_create() {
-    int msq_logger_id = msgget(MSQ_LOG_ID, IPC_CREAT | 0600);
-    if (msq_logger_id == -1) {
-        exit(1);
-    }
-    int msq_kasy_sam_id = msgget(MSQ_KASY_SAM_ID, IPC_CREAT | 0600);
-    if (msq_kasy_sam_id == -1) {
-        exit(1);
-    }
+    int msq_logger_id = msgget(MSQ_ID_LOGGER, IPC_CREAT | 0600);
+    if (msq_logger_id == -1) exit(1);
 
-    operacja_wait(shm_semafory->sem_kolejki);
-    shm_kolejki->kol_logger = msq_logger_id;
-    shm_kolejki->kol_kasy_sam = msq_kasy_sam_id;
-    operacja_signal(shm_semafory->sem_kolejki);
+    int msq_ss_checkouts_id = msgget(MSQ_ID_SS_CHECKOUTS, IPC_CREAT | 0600);
+    if (msq_ss_checkouts_id == -1) exit(1);
+
+    operation_wait(shm_semaphores->sem_queues);
+    shm_queues->msq_logger = msq_logger_id;
+    shm_queues->msq_ss_checkouts = msq_ss_checkouts_id;
+    operation_signal(shm_semaphores->sem_queues);
 };
 
 void msq_destroy() {
-    msgctl(shm_kolejki->kol_logger, IPC_RMID, NULL);
-    msgctl(shm_kolejki->kol_kasy_sam, IPC_RMID, NULL);
+    msgctl(shm_queues->msq_logger, IPC_RMID, NULL);
+    msgctl(shm_queues->msq_ss_checkouts, IPC_RMID, NULL);
 };
 
