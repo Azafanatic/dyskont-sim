@@ -15,10 +15,12 @@ int shm_dane_id;
 int shm_semafory_id;
 int shm_kolejki_id;
 int shm_raport_id;
+int shm_kasy_sam_id;
 Dane * shm_dane;
 Semafory *shm_semafory;
 Kolejki *shm_kolejki;
 Raport *shm_raport;
+KasySam *shm_kasy_sam;
 
 pid_t pids[PROCESY_GLOWNE];
 char wiadomosc[240];
@@ -108,6 +110,11 @@ void shm_init() {
     shm_semafory = (Semafory*) shm_create(&shm_semafory_id, SEMAFORY);
     shm_dane = (Dane*) shm_create(&shm_dane_id, DANE);
     shm_raport = (Raport*) shm_create(&shm_raport_id, RAPORT);
+    shm_kasy_sam = (KasySam*) shm_create(&shm_kasy_sam_id, KASY_SAM);
+
+    for (int i = 0; i < MAX_KASY_SAM; i++) {
+        shm_kasy_sam[i].kasa->otwarta = false;
+    }
 };
 
 void shm_close() {
@@ -115,19 +122,18 @@ void shm_close() {
     shm_destroy(shm_semafory_id, shm_semafory);
     shm_destroy(shm_dane_id, shm_dane);
     shm_destroy(shm_raport_id, shm_raport);
+    shm_destroy(shm_kasy_sam_id, shm_kasy_sam);
 };
 
 void sem_create() {
-    shm_semafory->sem_otwieranie_kasy = utworz_semafor(SEM_ID_OTWIERANIE_KASY);
-    shm_semafory->sem_zamykanie_kasy = utworz_semafor(SEM_ID_ZAMYKANIE_KASY);
+    shm_semafory->sem_kasy = utworz_semafor(SEM_ID_KASY);
     shm_semafory->sem_raport = utworz_semafor(SEM_ID_RAPORT);
     shm_semafory->sem_kolejki = utworz_semafor(SEM_ID_KOLEJKI);
     shm_semafory->sem_sklep_dane = utworz_semafor(SEM_ID_SKLEP_DANE);
 };
 
 void sem_destroy() {
-    usun_semafor(shm_semafory->sem_otwieranie_kasy);
-    usun_semafor(shm_semafory->sem_zamykanie_kasy);
+    usun_semafor(shm_semafory->sem_kasy);
     usun_semafor(shm_semafory->sem_raport);
     usun_semafor(shm_semafory->sem_kolejki);
     usun_semafor(shm_semafory->sem_sklep_dane);

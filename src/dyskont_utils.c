@@ -101,6 +101,12 @@ void * shm_att(int * id, SekcjeIPC typ_sekcji) {
             klucz = SHM_RAPORT;
             rozmiar = sizeof(Raport);
             break;
+        case KASY_SAM:
+            klucz = SHM_KASY_SAM;
+            rozmiar = sizeof(KasySam);
+        case KASY_STAC:
+            klucz = SHM_KASY_STAC;
+            rozmiar = sizeof(KasyStac);
         default:
             break;
     }
@@ -141,6 +147,12 @@ void * shm_create(int * id, SekcjeIPC typ_sekcji) {
             klucz = SHM_RAPORT;
             rozmiar = sizeof(Raport);
             break;
+        case KASY_SAM:
+            klucz = SHM_KASY_SAM;
+            rozmiar = sizeof(KasySam);
+        case KASY_STAC:
+            klucz = SHM_KASY_STAC;
+            rozmiar = sizeof(KasyStac);
         default:
             break;
     }

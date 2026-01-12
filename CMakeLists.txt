@@ -12,6 +12,7 @@ add_executable(kierownik
 		src/kierownik.c
 		src/dyskont_utils.c
 )
+target_link_libraries(kierownik m)
 
 add_executable(klient
 		src/klient.c

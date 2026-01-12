@@ -9,4 +9,4 @@ cd build
 cmake ..
 make
 
-./dyskont 3600 60
+./dyskont 7200 600

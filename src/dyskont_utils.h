@@ -4,33 +4,39 @@
 #include <stdbool.h>
 #include <sys/shm.h>
 
-#define MAX_KLIENCI 128
+#define MAX_KLIENCI 50
 #define MIN_PRODUKTY 3
 #define MAX_PRODUKTY 10
-#define MAX_KASY_SAMOOBSLUGOWE 6
-#define MAX_KASY_STACJONARNE 2
+#define ILOSC_DOSTEPNYCH_PRODUKTOW 32
+#define MAX_KASY_SAM 6
+#define MAX_KASY_STAC 2
 
-#define SEM_ID_KOLEJKA_SAMOOBSLUGOWA 6841
-#define SEM_ID_KOLEJKA_STACJONARNA 6842
-#define SEM_ID_OTWIERANIE_KASY 6843
-#define SEM_ID_ZAMYKANIE_KASY 6844
-#define SEM_ID_RAPORT 6845
-#define SEM_ID_KOLEJKI 6846
-#define SEM_ID_SKLEP_DANE 6847
+#define SEM_ID_KOLEJKA_SAM 6841
+#define SEM_ID_KOLEJKA_STAC 6842
+#define SEM_ID_KASY 6843
+#define SEM_ID_RAPORT 6844
+#define SEM_ID_KOLEJKI 6845
+#define SEM_ID_SKLEP_DANE 6846
 
 #define SHM_SEMAFORY 4581
 #define SHM_KOLEJKI 4582
 #define SHM_DANE 4583
 #define SHM_RAPORT 4584
+#define SHM_KASY_SAM 4585
+#define SHM_KASY_STAC 4586
 
 #define MSQ_LOG_ID 6840
 #define MSQ_KASY_SAM_ID 6841
+#define MSQ_KASA_STAC_1_ID 6842
+#define MSQ_KASA_STAC_2_ID 6842
 
 typedef enum {
     KOLEJKI,
     SEMAFORY,
     DANE,
     RAPORT,
+    KASY_SAM,
+    KASY_STAC
 } SekcjeIPC;
 
 typedef enum {
@@ -75,7 +81,6 @@ typedef struct {
     int id;
     int liczba_produktow;
     int wiek;
-    bool ma_alkohol;
     double czas_zakupow;
     Produkt produkty[MAX_PRODUKTY];
 } Klient;
@@ -86,14 +91,22 @@ typedef struct {
 } KlientMSQ;
 
 typedef struct {
-    int id;
     bool otwarta;
-    int kolejka;
+    int obsluzeni_klienci;
 } Kasa;
 
 typedef struct {
-    int sem_otwieranie_kasy;
-    int sem_zamykanie_kasy;
+    int otwarte_kasy;
+    Kasa kasa[MAX_KASY_SAM];
+} KasySam;
+
+typedef struct {
+    int otwarte_kasy;
+    Kasa kasa[MAX_KASY_STAC];
+} KasyStac;
+
+typedef struct {
+    int sem_kasy;
     int sem_raport;
     int sem_kolejki;
     int sem_sklep_dane;

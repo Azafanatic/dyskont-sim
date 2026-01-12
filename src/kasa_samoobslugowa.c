@@ -15,15 +15,17 @@ int shm_kolejki_id;
 int shm_semafory_id;
 int shm_dane_id;
 int shm_raport_id;
+int shm_kasy_sam_id;
 Kolejki *shm_kolejki;
 Semafory *shm_semafory;
 Dane *shm_dane;
 Raport *shm_raport;
+KasySam *shm_kasy_sam;
 
-char wiadomosc[320];
-char wiadomosc_buf[80];
+pid_t pids[MAX_KASY_SAM];
 
 void obsluga_sygnalu(int sig);
+void obsloz_klienta(int id_kasy);
 void shm_init();
 void shm_close();
 
@@ -32,13 +34,65 @@ int main(int argc, char *argv[]) {
 
     shm_init();
 
-    KlientMSQ msg;
+    for (int i = 0; i < 3; i++) {
+        shm_kasy_sam[i].kasa->otwarta = true;
+    }
+
+    for (int i = 0; i < MAX_KASY_SAM; i++) {
+        pids[i] = fork();
+
+        if (pids[i] < 0) {
+            perror("Blad forka\n");
+            exit(1);
+        } else if (pids[i] == 0) {
+            obsloz_klienta(i);
+            exit(1);
+        }
+    }
+
+    char wiadomosc[320];
+
     while (!koniec) {
+        sprintf(wiadomosc, "Kolejka %d\t Kasy otwarte %d\n", ilu_w_kolejce(shm_kolejki->kol_kasy_sam), shm_kasy_sam->otwarte_kasy);
+        zapisz_log(LOG_KASA_SAM, wiadomosc, shm_kolejki->kol_logger);
+
+        usleep(1000000);
+    }
+
+    shm_close();
+    exit(0);
+}
+
+void obsluga_sygnalu(int sig) {
+    if (sig == SIGINT) {
+        koniec = 1;
+    }
+}
+
+void obsloz_klienta(int id_kasy) {
+    char wiadomosc[320];
+    char wiadomosc_buf[80];
+    KlientMSQ msg;
+    bool otwarta;
+    operacja_wait(shm_semafory->sem_kasy);
+    shm_kasy_sam->kasa[id_kasy].obsluzeni_klienci = 0;
+    operacja_signal(shm_semafory->sem_kasy);
+
+    while (!koniec) {
+        otwarta = shm_kasy_sam->otwarte_kasy > id_kasy;
+
+        if (!otwarta) {
+            usleep(5000000 / shm_dane->szybkosc_symulacji);
+            continue;
+        };
+
         if (msgrcv(shm_kolejki->kol_kasy_sam, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
             break;
         }
         strcpy(wiadomosc, " ");
         strcpy(wiadomosc_buf, " ");
+        sprintf(wiadomosc_buf, "(%d) ", id_kasy);
+        strcat(wiadomosc,wiadomosc_buf);
         sprintf(wiadomosc_buf, "Witaj kliencie (%d)!\nTwoja lista zakupow:\n", msg.klient.id);
         strcat(wiadomosc,wiadomosc_buf);
         for (int i = 0; i < msg.klient.liczba_produktow; i++) {
@@ -48,7 +102,7 @@ int main(int argc, char *argv[]) {
         sprintf(wiadomosc_buf, "\n");
         strcat(wiadomosc,wiadomosc_buf);
 
-        usleep(msg.klient.liczba_produktow * 1000000 / shm_dane->szybkosc_symulacji);
+        usleep((10 + 3 * msg.klient.liczba_produktow) * 1000000 / shm_dane->szybkosc_symulacji);
 
         bool alkohol = false;
 
@@ -89,23 +143,20 @@ int main(int argc, char *argv[]) {
             kill(msg.klient.id, SIGUSR2);
         }
 
+        operacja_wait(shm_semafory->sem_kasy);
+        shm_kasy_sam->kasa[id_kasy].obsluzeni_klienci++;
+        operacja_signal(shm_semafory->sem_kasy);
     }
 
-    shm_close();
-    exit(0);
-}
-
-void obsluga_sygnalu(int sig) {
-    if (sig == SIGINT) {
-        koniec = 1;
-    }
-}
+    //printf("Kasa (%d) - obsluzeni klienci: %d\n", id_kasy, shm_kasy_sam->kasa[id_kasy].obsluzeni_klienci);
+};
 
 void shm_init() {
     shm_kolejki = (Kolejki*) shm_att(&shm_kolejki_id, KOLEJKI);
     shm_semafory = (Semafory*) shm_att(&shm_semafory_id, SEMAFORY);
     shm_dane = (Dane*) shm_att(&shm_dane_id, DANE);
     shm_raport = (Raport*) shm_att(&shm_raport_id, RAPORT);
+    shm_kasy_sam = (KasySam*) shm_create(&shm_kasy_sam_id, KASY_SAM);
 };
 
 void shm_close() {
@@ -113,4 +164,5 @@ void shm_close() {
     shm_destroy(shm_semafory_id, shm_semafory);
     shm_destroy(shm_dane_id, shm_dane);
     shm_destroy(shm_raport_id, shm_raport);
+    shm_destroy(shm_kasy_sam_id, shm_kasy_sam);
 };

@@ -6,8 +6,6 @@
 #include <math.h>
 #include "dyskont_utils.h"
 
-#define ILOSC_DOSTEPNYCH_PRODUKTOW 32
-
 pid_t pids[MAX_KLIENCI];
 
 volatile sig_atomic_t koniec = 0;
@@ -22,13 +20,16 @@ Dane *shm_dane;
 Raport *shm_raport;
 
 int aktywni = 0;
+double lambda;
+double u;
+double czas_oczekiwania;
 
 bool stan_sklepu;
 
 volatile sig_atomic_t skasowano = 0;
 bool sukces;
 
-Produkt dostepne_produkty[32] =
+Produkt dostepne_produkty[ILOSC_DOSTEPNYCH_PRODUKTOW] =
 {{"Piwo", 2.99, ALKOHOLE}, {"Wino", 39.99, ALKOHOLE}, {"Wodka", 44.99, ALKOHOLE}, {"Jagermeister", 69.99, ALKOHOLE},
 {"Whisky", 74.99, ALKOHOLE}, {"Maslo", 9.99, NABIAL}, {"Sok jablkowy", 5.49, SOKI}, {"Sok pomaranczowy", 6.99, SOKI},
 {"Chleb", 4.29, PIECZYWO}, {"Mleko", 3.19, NABIAL}, {"Jablko", 1.99, OWOCE}, {"Ser zolty", 19.99, NABIAL},
@@ -39,7 +40,7 @@ Produkt dostepne_produkty[32] =
 {"Mak", 3.99, INNE}, {"Orzechy", 14.99, INNE}, {"Miod", 18.99, INNE}, {"Przyprawy", 3.49, SUCHE}};
 
 
-void wykonaj_prace();
+void zrob_zakupy();
 
 void shm_init();
 void shm_close();
@@ -51,6 +52,8 @@ int main(int argc, char *argv[]) {
     shm_init();
 
     srand(time(NULL));
+
+    lambda = 1.0 / MAX_KLIENCI;
 
     while (!koniec) {
 
@@ -74,7 +77,7 @@ int main(int argc, char *argv[]) {
                 perror("fork");
             }
             else if (pid == 0) {
-                wykonaj_prace();
+                zrob_zakupy();
             }
             else {
                 pids[aktywni++] = pid;
@@ -85,7 +88,16 @@ int main(int argc, char *argv[]) {
         shm_dane->ilosc_klientow = aktywni;
         operacja_signal(shm_semafory->sem_sklep_dane);
 
-        usleep( (6 + (cos(time(NULL) * 10) + 1) * 5 + (rand() % 7)) * 150000 / shm_dane->szybkosc_symulacji);
+
+        //TODO; znaleźć lepszy sposób na wprowadzanie klientów ze zmiennym tempem
+        u = (double)rand() / (double)RAND_MAX;
+        czas_oczekiwania = -log(1.0 - u) / lambda;
+        if (czas_oczekiwania < 0.1) {
+            czas_oczekiwania = 0.1;
+        }
+
+        czas_oczekiwania = czas_oczekiwania * 8500 / shm_dane->szybkosc_symulacji;
+        usleep(czas_oczekiwania);
     }
 
     shm_close();
@@ -93,7 +105,7 @@ int main(int argc, char *argv[]) {
     exit(0);
 }
 
-void wykonaj_prace() {
+void zrob_zakupy() {
     char wiadomosc[240];
 
     signal(SIGUSR1, obsluga_sygnalu);
@@ -101,7 +113,7 @@ void wykonaj_prace() {
 
     Klient klient;
     klient.liczba_produktow = MIN_PRODUKTY + rand() % (MAX_PRODUKTY - MIN_PRODUKTY + 1);
-    klient.czas_zakupow = (double) (120 + rand() % 30 * klient.liczba_produktow) / shm_dane->szybkosc_symulacji * 1000000;
+    klient.czas_zakupow = (double) (60 + rand() % 30 * klient.liczba_produktow) / shm_dane->szybkosc_symulacji * 1000000;
     klient.id = getpid();
     klient.wiek = 5 + rand() % 90;
 
@@ -111,7 +123,6 @@ void wykonaj_prace() {
 
     sprintf(wiadomosc, "(%d): Dzien dobry!\n",klient.id);
     zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger);
-
 
     sprintf(wiadomosc, "(%d): Kupie %d rzeczy.\n",klient.id, klient.liczba_produktow);
     zapisz_log(LOG_KLIENT, wiadomosc, shm_kolejki->kol_logger);
