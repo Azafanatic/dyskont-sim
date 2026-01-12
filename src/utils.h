@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <sys/shm.h>
+#include <sys/wait.h>
 
 #define MAX_CLIENTS 50
 #define MIN_PRODUCTS 3
@@ -115,6 +116,7 @@ typedef struct {
 typedef struct {
     int sim_length;
     int sim_speed;
+    sig_atomic_t stop_sim;
 } SimSettings;
 
 typedef struct {

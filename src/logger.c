@@ -13,20 +13,15 @@
 
 int shm_semaphores_id;
 int shm_queues_id;
+int shm_sim_settings_id;
 Semaphores *shm_semaphores;
 Queues *shm_queues;
-
-sig_atomic_t stop_sim = 0;
-
-void sigint_handler(int sig);
+SimSettings *shm_sim_settings;
 
 void shm_init();
 void shm_close();
 
 int main() {
-
-    signal(SIGINT, sigint_handler);
-
     mkdir("logi", 0755);
 
     shm_init();
@@ -41,7 +36,7 @@ int main() {
 
     LogMessage msg;
 
-    while (!stop_sim) {
+    while (!shm_sim_settings->stop_sim) {
         if (msgrcv(shm_queues->msq_logger, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
             break;
         }
@@ -101,20 +96,16 @@ int main() {
     exit(0);
 }
 
-void sigint_handler(int sig) {
-    if (sig == SIGINT) {
-        stop_sim = 1;
-    }
-}
-
 void shm_init() {
     shm_queues = (Queues*) shm_att(&shm_queues_id, QUEUES);
     shm_semaphores = (Semaphores*) shm_att(&shm_semaphores_id, SEMAPHORES);
+    shm_sim_settings = (SimSettings*) shm_att(&shm_sim_settings_id, SIM_SETTINGS);
 };
 
 void shm_close() {
     shm_det(shm_queues);
     shm_det(shm_semaphores);
+    shm_det(shm_sim_settings);
 };
 
 

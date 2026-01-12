@@ -9,8 +9,6 @@
 
 #define MAIN_PROCESSES 6
 
-volatile sig_atomic_t stop_sim = 0;
-
 int shm_sim_settings_id;
 int shm_store_data_id;
 int shm_semaphores_id;
@@ -47,6 +45,7 @@ int main(int argc, char *argv[]) {
     operation_signal(shm_semaphores->sem_store_data);
 
     operation_wait(shm_semaphores->sem_sim_settings);
+    shm_sim_settings->stop_sim = 0;
     shm_sim_settings->sim_length = (argc >= 2) ? atoi(argv[1]) : 3600;
     shm_sim_settings->sim_speed = (argc >= 3) ? atoi(argv[2]) : 60;
     operation_signal(shm_semaphores->sem_sim_settings);
@@ -56,7 +55,6 @@ int main(int argc, char *argv[]) {
     save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
 
     {
-
         char *process_names[MAIN_PROCESSES] = {"logger", "manager", "client", "self_service_checkout", "checkout", "staff"};
         char exec_path[32];
 
@@ -78,7 +76,7 @@ int main(int argc, char *argv[]) {
 
     signal(SIGINT, sigint_handler);
 
-    while (!stop_sim) {
+    while (!shm_sim_settings->stop_sim) {
         sleep(1);
     }
 
@@ -101,7 +99,9 @@ int main(int argc, char *argv[]) {
 
 void sigint_handler(int sig) {
     if (sig == SIGINT) {
-        stop_sim = 1;
+        operation_wait(shm_semaphores->sem_sim_settings);
+        shm_sim_settings->stop_sim = 1;
+        operation_signal(shm_semaphores->sem_sim_settings);
     }
 };
 
@@ -155,5 +155,7 @@ void msq_create() {
 void msq_destroy() {
     msgctl(shm_queues->msq_logger, IPC_RMID, NULL);
     msgctl(shm_queues->msq_ss_checkouts, IPC_RMID, NULL);
+    msgctl(shm_queues->msq_checkout_one, IPC_RMID, NULL);
+    msgctl(shm_queues->msq_checkout_two, IPC_RMID, NULL);
 };
 

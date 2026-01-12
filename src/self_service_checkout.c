@@ -9,8 +9,6 @@
 #include <string.h>
 #include "utils.h"
 
-sig_atomic_t stop_sim = 0;
-
 int shm_sim_settings_id;
 int shm_store_data_id;
 int shm_semaphores_id;
@@ -24,13 +22,11 @@ SelfServiceCheckouts *shm_ss_checkouts;
 
 pid_t pids[MAX_SS_CHECKOUTS];
 
-void sigint_handler(int sig);
 void serve_the_customer(int id_kasy);
 void shm_init();
 void shm_close();
 
 int main(int argc, char *argv[]) {
-    signal(SIGINT, sigint_handler);
 
     shm_init();
 
@@ -52,7 +48,7 @@ int main(int argc, char *argv[]) {
 
     char logger_message[320];
 
-    while (!stop_sim) {
+    while (!shm_sim_settings->stop_sim) {
         sprintf(logger_message, "Kolejka %d\t Kasy otwarte %d\n", queue_length(shm_queues->msq_ss_checkouts), shm_ss_checkouts->checkouts_opened);
         save_a_log(LOG_SS_CHECKOUT, logger_message, shm_queues->msq_logger);
 
@@ -61,12 +57,6 @@ int main(int argc, char *argv[]) {
 
     shm_close();
     exit(0);
-}
-
-void sigint_handler(int sig) {
-    if (sig == SIGINT) {
-        stop_sim = 1;
-    }
 }
 
 void serve_the_customer(int id) {
@@ -78,11 +68,11 @@ void serve_the_customer(int id) {
     shm_ss_checkouts->checkout[id].clients_served = 0;
     operation_signal(shm_semaphores->sem_checkouts);
 
-    while (!stop_sim) {
+    while (!shm_sim_settings->stop_sim) {
         open = shm_ss_checkouts->checkouts_opened > id;
 
         if (!open) {
-            usleep(5000000 / shm_sim_settings->sim_speed);
+            usleep(500000 / shm_sim_settings->sim_speed);
             continue;
         };
 
