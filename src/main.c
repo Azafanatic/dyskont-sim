@@ -142,9 +142,13 @@ void msq_create() {
     int msq_ss_checkouts_id = msgget(MSQ_ID_SS_CHECKOUTS, IPC_CREAT | 0600);
     if (msq_ss_checkouts_id == -1) exit(1);
 
+    int msq_receipts_id = msgget(MSQ_ID_RECEIPTS, IPC_CREAT | 0600);
+    if (msq_receipts_id == -1) exit(1);
+
     operation_wait(shm_semaphores->sem_queues);
     shm_queues->msq_logger = msq_logger_id;
     shm_queues->msq_ss_checkouts = msq_ss_checkouts_id;
+    shm_queues->msq_receipts = msq_receipts_id;
     operation_signal(shm_semaphores->sem_queues);
 };
 
@@ -153,5 +157,6 @@ void msq_destroy() {
     msgctl(shm_queues->msq_ss_checkouts, IPC_RMID, NULL);
     msgctl(shm_queues->msq_checkout_one, IPC_RMID, NULL);
     msgctl(shm_queues->msq_checkout_two, IPC_RMID, NULL);
+    msgctl(shm_queues->msq_receipts, IPC_RMID, NULL);
 };
 

@@ -32,6 +32,7 @@
 #define MSQ_ID_SS_CHECKOUTS 6841
 #define MSQ_ID_CHECKOUT_ONE 6842
 #define MSQ_ID_CHECKOUT_TWO 6842
+#define MSQ_ID_RECEIPTS 6849
 
 typedef enum {
     QUEUES,
@@ -94,6 +95,11 @@ typedef struct {
 } ClientMessage;
 
 typedef struct {
+    long message_type;
+    char message[320];
+} ReceiptMessage;
+
+typedef struct {
     sig_atomic_t open;
     pid_t pid;
     int clients_served;
@@ -136,6 +142,7 @@ typedef struct {
     int msq_ss_checkouts;
     int msq_checkout_one;
     int msq_checkout_two;
+    int msq_receipts;
 } Queues;
 
 int create_a_semaphore(int key);

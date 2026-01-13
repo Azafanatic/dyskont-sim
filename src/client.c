@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <sys/msg.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
@@ -130,6 +131,10 @@ void do_some_shopping() {
     }
 
     if (success) {
+        ReceiptMessage receipt;
+        if (msgrcv(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), (long)client.id, 0) != -1) {
+            save_a_log(LOG_CLIENT, receipt.message, shm_queues->msq_logger);
+        }
         sprintf(logger_message, "(%d): Dowidzenia!\n",getpid());
     } else {
         sprintf(logger_message, "(%d): :C\n",getpid());

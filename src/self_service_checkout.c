@@ -83,8 +83,8 @@ void serve_the_customer(int new_id) {
             break;
         ;}
 
-        strcpy(logger_message, " ");
-        strcpy(logger_message_buf, " ");
+        strcpy(logger_message, "");
+        strcpy(logger_message_buf, "");
         sprintf(logger_message_buf, "(%d) ", id);
         strcat(logger_message,logger_message_buf);
         sprintf(logger_message_buf, "Witaj kliencie (%d)!\nTwoja lista zakupow:\n", msg.client.id);
@@ -121,6 +121,23 @@ void serve_the_customer(int new_id) {
             sprintf(logger_message_buf, "Calosc kosztuje %.2f zł.\nDziekujemy i zapraszamy ponownie!\n", cena);
             strcat(logger_message,logger_message_buf);
             save_a_log(LOG_SS_CHECKOUT, logger_message, shm_queues->msq_logger);
+
+            ReceiptMessage receipt;
+            receipt.message_type = msg.client.id;
+            snprintf(receipt.message, sizeof(receipt.message), "PARAGON\nKlient PID: %d\nKasa ID: %d\nTwoja lista zakupow:\n",id, msg.client.id);
+
+            for (int i = 0; i < msg.client.number_of_products; i++) {
+                char buf[80];
+                sprintf(buf, "%s - %.2f zl\n", msg.client.products[i].name, msg.client.products[i].price);
+                strncat(receipt.message, buf, sizeof(receipt.message) - strlen(receipt.message) - 1);
+            }
+
+            char buf_tot[80];
+
+            sprintf(buf_tot, "Razem: %.2f zl\n", cena);
+            strncat(receipt.message, buf_tot, sizeof(receipt.message) - strlen(receipt.message) - 1);
+
+            msgsnd(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), 0);
 
             kill(msg.client.id, SIGUSR2);
         }
