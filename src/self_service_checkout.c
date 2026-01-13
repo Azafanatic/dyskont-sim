@@ -19,6 +19,7 @@ StoreData *shm_store_data;
 Semaphores *shm_semaphores;
 Queues *shm_queues;
 SelfServiceCheckouts *shm_ss_checkouts;
+int id;
 
 pid_t pids[MAX_SS_CHECKOUTS];
 
@@ -30,10 +31,7 @@ int main(int argc, char *argv[]) {
 
     shm_init();
 
-    for (int i = 0; i < 3; i++) {
-        shm_ss_checkouts[i].checkout->open = true;
-    }
-
+    operation_wait(shm_semaphores->sem_checkouts);
     for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
         pids[i] = fork();
 
@@ -43,42 +41,48 @@ int main(int argc, char *argv[]) {
         } else if (pids[i] == 0) {
             serve_the_customer(i);
             exit(1);
+        } else {
+            shm_ss_checkouts->checkout[i].pid = pids[i];
+            shm_ss_checkouts->checkout[i].clients_served = 0;
         }
     }
+    operation_signal(shm_semaphores->sem_checkouts);
 
     char logger_message[320];
 
     while (!shm_sim_settings->stop_sim) {
-        sprintf(logger_message, "Kolejka %d\t Kasy otwarte %d\n", queue_length(shm_queues->msq_ss_checkouts), shm_ss_checkouts->checkouts_opened);
-        save_a_log(LOG_SS_CHECKOUT, logger_message, shm_queues->msq_logger);
+        sprintf(logger_message, "Osoby w sklepie: %d\t Kolejka: %d\t Kasy otwarte: %d\n",shm_store_data->all_clients, queue_length(shm_queues->msq_ss_checkouts), shm_ss_checkouts->checkouts_opened);
+        save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
 
-        usleep(1000000);
+        usleep(10000000. / shm_sim_settings->sim_speed);
     }
 
     shm_close();
     exit(0);
 }
 
-void serve_the_customer(int id) {
+void serve_the_customer(int new_id) {
+    id = new_id;
     char logger_message[320];
     char logger_message_buf[80];
+
+    shm_ss_checkouts->checkout[id].open = (id < 3) ? 1 : 0;
+
+    sprintf(logger_message, "Tu kasa nr. %d, pid %d\n", id, shm_ss_checkouts->checkout[id].pid);
+    save_a_log(LOG_SIM_WARN, logger_message, shm_queues->msq_logger);
+
     ClientMessage msg;
-    bool open;
-    operation_wait(shm_semaphores->sem_checkouts);
-    shm_ss_checkouts->checkout[id].clients_served = 0;
-    operation_signal(shm_semaphores->sem_checkouts);
 
     while (!shm_sim_settings->stop_sim) {
-        open = shm_ss_checkouts->checkouts_opened > id;
-
-        if (!open) {
+        if (shm_ss_checkouts->checkout[id].open == 0) {
             usleep(500000 / shm_sim_settings->sim_speed);
             continue;
         };
 
         if (msgrcv(shm_queues->msq_ss_checkouts, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
             break;
-        }
+        ;}
+
         strcpy(logger_message, " ");
         strcpy(logger_message_buf, " ");
         sprintf(logger_message_buf, "(%d) ", id);
@@ -92,7 +96,7 @@ void serve_the_customer(int id) {
         sprintf(logger_message_buf, "\n");
         strcat(logger_message,logger_message_buf);
 
-        usleep((10 + 3 * msg.client.number_of_products) * 1000000 / shm_sim_settings->sim_speed);
+        usleep((10 + 2 * msg.client.number_of_products) * 1000000 / shm_sim_settings->sim_speed);
 
         bool alcohol = false;
 

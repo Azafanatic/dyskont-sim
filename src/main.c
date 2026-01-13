@@ -111,10 +111,6 @@ void shm_init() {
     shm_store_data = (StoreData*) shm_create(&shm_store_data_id, STORE_DATA);
     shm_sim_settings = (SimSettings*) shm_create(&shm_sim_settings_id, SIM_SETTINGS);
     shm_ss_checkouts = (SelfServiceCheckouts*) shm_create(&shm_ss_checkouts_id, SS_CHECKOUTS);
-
-    for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
-        shm_ss_checkouts[i].checkout->open = false;
-    }
 };
 
 void shm_close() {

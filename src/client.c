@@ -55,8 +55,6 @@ int main(int argc, char *argv[]) {
 
     srand(time(NULL));
 
-    lambda = 1.0 / MAX_CLIENTS;
-
     while (!stop_sim) {
 
         for (int i = 0; i < active; i++) {
@@ -68,9 +66,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        operation_wait(shm_semaphores->sem_store_data);
         open = shm_store_data->open;
-        operation_signal(shm_semaphores->sem_store_data);
 
         if (active < MAX_CLIENTS && open) {
             pid_t pid = fork();
@@ -92,14 +88,8 @@ int main(int argc, char *argv[]) {
 
 
         //TODO; znaleźć lepszy sposób na wprowadzanie klientów ze zmiennym tempem
-        u = (double)rand() / (double)RAND_MAX;
-        wait_time = -log(1.0 - u) / lambda;
-        if (wait_time < 0.1) {
-            wait_time = 0.1;
-        }
-
-        wait_time = wait_time * 8500 / shm_sim_settings->sim_speed;
-        usleep(wait_time);
+        wait_time = ((6 + (cos(time(NULL) * 10) + 1) * 5 + (rand() % 7)) * 150000 )/ shm_sim_settings->sim_speed;
+        usleep(wait_time * 3);
     }
 
     shm_close();
@@ -115,7 +105,7 @@ void do_some_shopping() {
 
     Client client;
     client.number_of_products = MIN_PRODUCTS + rand() % (MAX_PRODUCTS - MIN_PRODUCTS + 1);
-    client.shopping_time = (double) (60 + rand() % 30 * client.number_of_products) / shm_sim_settings->sim_speed * 1000000;
+    client.shopping_time = (double) (60 + 30 * client.number_of_products) / shm_sim_settings->sim_speed * 1000000;
     client.id = getpid();
     client.age = 5 + rand() % 90;
 
@@ -131,7 +121,7 @@ void do_some_shopping() {
 
     usleep(client.shopping_time);
 
-    sprintf(logger_message, "Staje w kolejce. Moje miesce ma nr. %d\n", shm_queues->msq_ss_checkouts);
+    sprintf(logger_message, "Staje w kolejce. Moje miesce ma nr. %d\n", queue_length(shm_queues->msq_ss_checkouts));
     save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
     stand_in_the_queue(client, shm_queues->msq_ss_checkouts);
 

@@ -1,11 +1,13 @@
 #ifndef DYSKONT_UTILS_H
 #define DYSKONT_UTILS_H
 
+#include <signal.h>
 #include <stdbool.h>
 #include <sys/shm.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 
-#define MAX_CLIENTS 50
+#define MAX_CLIENTS 100
 #define MIN_PRODUCTS 3
 #define MAX_PRODUCTS 10
 #define PRODUCTS_AVAILABLE 32
@@ -92,7 +94,8 @@ typedef struct {
 } ClientMessage;
 
 typedef struct {
-    bool open;
+    sig_atomic_t open;
+    pid_t pid;
     int clients_served;
 } Checkout;
 
