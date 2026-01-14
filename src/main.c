@@ -1,10 +1,12 @@
 #include <stdlib.h>
+#include <limits.h>
 #include <stdio.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/msg.h>
 #include <sys/ipc.h>
+#include <string.h>
 #include "utils.h"
 
 #define MAIN_PROCESSES 6
@@ -55,20 +57,32 @@ int main(int argc, char *argv[]) {
     save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
 
     {
+        char path[PATH_MAX];
+        char *res = realpath(argv[0], path);
+        (void)argc;
+
+        if (!res) {
+            perror("Blad sciezki\n");
+            exit(0);
+        };
+
+        char bin_name[] = "sim";
+        path[strlen(path)-strlen(bin_name)] = '\0';
+
         char *process_names[MAIN_PROCESSES] = {"logger", "manager", "client", "self_service_checkout", "checkout", "staff"};
-        char exec_path[32];
+        char buf[PATH_MAX];
 
         for (int i = 0; i < MAIN_PROCESSES; i++) {
             pids[i] = fork();
 
-            sprintf(exec_path, "./%s", process_names[i]);
+            sprintf(buf, "%s%s",path, process_names[i]);
 
             if (pids[i] < 0) {
-                perror("Błąd forka\n");
+                perror("Blad forka\n");
                 exit(1);
             } else if (pids[i] == 0) {
-                execlp(exec_path, process_names[i], (char *)NULL);
-                perror("Błąd exec\n");
+                execlp(buf, process_names[i], (char *)NULL);
+                perror("Blad exec\n");
                 exit(1);
             }
         }
