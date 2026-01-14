@@ -51,9 +51,6 @@ int main(int argc, char *argv[]) {
     char logger_message[320];
 
     while (!shm_sim_settings->stop_sim) {
-        sprintf(logger_message, "Osoby w sklepie: %d\t Kolejka: %d\t Kasy otwarte: %d\n",shm_store_data->all_clients, queue_length(shm_queues->msq_ss_checkouts), shm_ss_checkouts->checkouts_opened);
-        save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
-
         usleep(10000000. / shm_sim_settings->sim_speed);
     }
 
@@ -67,9 +64,6 @@ void serve_the_customer(int new_id) {
     char logger_message_buf[80];
 
     shm_ss_checkouts->checkout[id].open = (id < 3) ? 1 : 0;
-
-    sprintf(logger_message, "Tu kasa nr. %d, pid %d\n", id, shm_ss_checkouts->checkout[id].pid);
-    save_a_log(LOG_SIM_WARN, logger_message, shm_queues->msq_logger);
 
     ClientMessage msg;
 
@@ -107,18 +101,37 @@ void serve_the_customer(int new_id) {
             }
         }
 
-        if (alcohol && msg.client.age < 18) {
+        bool approved = true;
+
+        if (alcohol) {
+            StaffRequest sreq;
+            sreq.message_type = 1;
+            sreq.client = msg.client;
+            msgsnd(shm_queues->msq_staff, &sreq, sizeof(sreq) - sizeof(long), 0);
+
+            StaffResponse sresp;
+            if (msgrcv(shm_queues->msq_staff, &sresp, sizeof(sresp) - sizeof(long), (long)msg.client.id, 0) == -1) {
+                approved = false;
+            } else {
+                approved = sresp.approved;
+            }
+        }
+
+        if (!approved) {
             sprintf(logger_message_buf, "Masz tylko %d lat, nie moge Ci tego sprzedac.\n", msg.client.age);
             strcat(logger_message,logger_message_buf);
             save_a_log(LOG_SS_CHECKOUT, logger_message, shm_queues->msq_logger);
 
-            kill(msg.client.id, SIGUSR1);
+            ClientResponse cresp;
+            cresp.message_type = msg.client.id;
+            cresp.approved = 0;
+            msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0);
         } else {
             float cena = 0.0;
             for (int i = 0; i < msg.client.number_of_products; i++) {
                 cena += msg.client.products[i].price;
             }
-            sprintf(logger_message_buf, "Calosc kosztuje %.2f zł.\nDziekujemy i zapraszamy ponownie!\n", cena);
+            sprintf(logger_message_buf, "Calosc: %.2f zl.\nDizekuje i zapraszam ponownie!\n", cena);
             strcat(logger_message,logger_message_buf);
             save_a_log(LOG_SS_CHECKOUT, logger_message, shm_queues->msq_logger);
 
@@ -139,7 +152,10 @@ void serve_the_customer(int new_id) {
 
             msgsnd(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), 0);
 
-            kill(msg.client.id, SIGUSR2);
+            ClientResponse cresp;
+            cresp.message_type = msg.client.id;
+            cresp.approved = 1;
+            msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0);
         }
 
         operation_wait(shm_semaphores->sem_checkouts);

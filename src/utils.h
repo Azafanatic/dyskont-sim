@@ -31,8 +31,10 @@
 #define MSQ_ID_LOGGER 6840
 #define MSQ_ID_SS_CHECKOUTS 6841
 #define MSQ_ID_CHECKOUT_ONE 6842
-#define MSQ_ID_CHECKOUT_TWO 6842
+#define MSQ_ID_CHECKOUT_TWO 6843
 #define MSQ_ID_RECEIPTS 6849
+#define MSQ_ID_STAFF 6850
+#define MSQ_ID_CLIENT_RESP 6851
 
 typedef enum {
     QUEUES,
@@ -100,6 +102,21 @@ typedef struct {
 } ReceiptMessage;
 
 typedef struct {
+    long message_type;
+    Client client;
+} StaffRequest;
+
+typedef struct {
+    long message_type;
+    int approved;
+} StaffResponse;
+
+typedef struct {
+    long message_type;
+    int approved;
+} ClientResponse;
+
+typedef struct {
     sig_atomic_t open;
     pid_t pid;
     int clients_served;
@@ -143,6 +160,8 @@ typedef struct {
     int msq_checkout_one;
     int msq_checkout_two;
     int msq_receipts;
+    int msq_staff;
+    int msq_client_resp;
 } Queues;
 
 int create_a_semaphore(int key);

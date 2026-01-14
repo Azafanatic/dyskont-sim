@@ -77,12 +77,16 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, sigint_handler);
 
     while (!shm_sim_settings->stop_sim) {
-        sleep(1);
+        sprintf(logger_message, "Osoby w sklepie: %d\t Kolejka: %d\t Kasy otwarte: %d\n",shm_store_data->all_clients, queue_length(shm_queues->msq_ss_checkouts), shm_ss_checkouts->checkouts_opened);
+        save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
+
+        usleep(10000000 /shm_sim_settings->sim_speed);
     }
 
     save_a_log(LOG_SIM_INFO, "KONCZE SYMULACJE\n", shm_queues->msq_logger);
 
-    sleep(1);
+    usleep(1000000);
+
     for (int i = 0; i < MAIN_PROCESSES; i++) {
         kill(pids[i], SIGINT);
     }
@@ -145,10 +149,18 @@ void msq_create() {
     int msq_receipts_id = msgget(MSQ_ID_RECEIPTS, IPC_CREAT | 0600);
     if (msq_receipts_id == -1) exit(1);
 
+    int msq_staff_id = msgget(MSQ_ID_STAFF, IPC_CREAT | 0600);
+    if (msq_staff_id == -1) exit(1);
+
+    int msq_client_resp_id = msgget(MSQ_ID_CLIENT_RESP, IPC_CREAT | 0600);
+    if (msq_client_resp_id == -1) exit(1);
+
     operation_wait(shm_semaphores->sem_queues);
     shm_queues->msq_logger = msq_logger_id;
     shm_queues->msq_ss_checkouts = msq_ss_checkouts_id;
     shm_queues->msq_receipts = msq_receipts_id;
+    shm_queues->msq_staff = msq_staff_id;
+    shm_queues->msq_client_resp = msq_client_resp_id;
     operation_signal(shm_semaphores->sem_queues);
 };
 
@@ -158,5 +170,7 @@ void msq_destroy() {
     msgctl(shm_queues->msq_checkout_one, IPC_RMID, NULL);
     msgctl(shm_queues->msq_checkout_two, IPC_RMID, NULL);
     msgctl(shm_queues->msq_receipts, IPC_RMID, NULL);
+    msgctl(shm_queues->msq_staff, IPC_RMID, NULL);
+    msgctl(shm_queues->msq_client_resp, IPC_RMID, NULL);
 };
 

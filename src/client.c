@@ -29,9 +29,6 @@ double wait_time;
 
 bool open;
 
-volatile sig_atomic_t done = 0;
-bool success;
-
 Product available_products[PRODUCTS_AVAILABLE] =
 {{"Piwo", 2.99, ALKOHOLE}, {"Wino", 39.99, ALKOHOLE}, {"Wodka", 44.99, ALKOHOLE}, {"Jagermeister", 69.99, ALKOHOLE},
 {"Whisky", 74.99, ALKOHOLE}, {"Maslo", 9.99, NABIAL}, {"Sok jablkowy", 5.49, SOKI}, {"Sok pomaranczowy", 6.99, SOKI},
@@ -42,13 +39,10 @@ Product available_products[PRODUCTS_AVAILABLE] =
 {"Dzem", 7.49, INNE}, {"Ketchup", 6.99, INNE}, {"Musztarda", 4.99, INNE}, {"Ciasteczka", 5.49, SLODYCZE},
 {"Mak", 3.99, INNE}, {"Orzechy", 14.99, INNE}, {"Miod", 18.99, INNE}, {"Przyprawy", 3.49, SUCHE}};
 
-
 void do_some_shopping();
 
 void shm_init();
 void shm_close();
-
-void sig_handler(int sig);
 
 int main(int argc, char *argv[]) {
 
@@ -101,9 +95,6 @@ int main(int argc, char *argv[]) {
 void do_some_shopping() {
     char logger_message[240];
 
-    signal(SIGUSR1, sig_handler);
-    signal(SIGUSR2, sig_handler);
-
     Client client;
     client.number_of_products = MIN_PRODUCTS + rand() % (MAX_PRODUCTS - MIN_PRODUCTS + 1);
     client.shopping_time = (double) (60 + 30 * client.number_of_products) / shm_sim_settings->sim_speed * 1000000;
@@ -126,16 +117,17 @@ void do_some_shopping() {
     save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
     stand_in_the_queue(client, shm_queues->msq_ss_checkouts);
 
-    while (!done) {
-        sleep(1);
-    }
-
-    if (success) {
-        ReceiptMessage receipt;
-        if (msgrcv(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), (long)client.id, 0) != -1) {
-            save_a_log(LOG_CLIENT, receipt.message, shm_queues->msq_logger);
+    ClientResponse cresp;
+    if (msgrcv(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), (long)client.id, 0) != -1) {
+        if (cresp.approved) {
+            ReceiptMessage receipt;
+            if (msgrcv(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), (long)client.id, 0) != -1) {
+                save_a_log(LOG_CLIENT, receipt.message, shm_queues->msq_logger);
+            }
+            sprintf(logger_message, "(%d): Dowidzenia!\n",getpid());
+        } else {
+            sprintf(logger_message, "(%d): :C\n",getpid());
         }
-        sprintf(logger_message, "(%d): Dowidzenia!\n",getpid());
     } else {
         sprintf(logger_message, "(%d): :C\n",getpid());
     }
@@ -161,11 +153,4 @@ void shm_close() {
     shm_det(shm_ss_checkouts);
 };
 
-void sig_handler(int sig) {
-    if (sig == SIGUSR1) {
-        success = false;
-    } else {
-        success = true;
-    }
-    done = 1;
-}
+

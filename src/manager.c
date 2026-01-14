@@ -74,7 +74,7 @@ void do_work() {
     while (true) {
         menage_checkouts();
         if (shm_store_data->all_clients <= 0) {
-            save_a_log(LOG_MANAGER, "Sklep zamkniety.\n", shm_queues->msq_logger);
+            save_a_log(LOG_MANAGER, "Wszyscy opuscili sklep. Sklep zamkniety.\n", shm_queues->msq_logger);
             kill(getppid(), SIGINT);
             exit(0);
         }
