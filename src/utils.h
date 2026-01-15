@@ -1,11 +1,16 @@
 #ifndef DYSKONT_UTILS_H
 #define DYSKONT_UTILS_H
 
+#include <libintl.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <sys/shm.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+#define _(STRING) gettext(STRING)
+#define LOCALEDIR "./locale"
 
 #define MAX_CLIENTS 100
 #define MIN_PRODUCTS 3
@@ -60,7 +65,7 @@ typedef enum {
 typedef struct {
     long message_type;
     LogType log_type;
-    char message[320];
+    char message[480];
 } LogMessage;
 
 typedef enum {
@@ -98,13 +103,8 @@ typedef struct {
 
 typedef struct {
     long message_type;
-    char message[320];
+    char message[480];
 } ReceiptMessage;
-
-typedef struct {
-    long message_type;
-    Client client;
-} StaffRequest;
 
 typedef struct {
     long message_type;
@@ -118,9 +118,17 @@ typedef struct {
 
 typedef struct {
     sig_atomic_t open;
+    sig_atomic_t blocked;
     pid_t pid;
+    int id;
     int clients_served;
 } Checkout;
+
+typedef struct {
+    long message_type;
+    Client client;
+    Checkout checkout;
+} StaffRequest;
 
 typedef struct {
     int checkouts_opened;
@@ -170,14 +178,16 @@ void del_a_semaphore(int semid);
 void operation_wait(int semid);
 void operation_signal(int semid);
 
-void * shm_att(int * id, SectionsIPC section_type);
-void * shm_create(int * id, SectionsIPC section_type);
-void shm_det(void * data);
-void shm_destroy(int id, void * data);
+void* shm_att(int* id, SectionsIPC section_type);
+void* shm_create(int* id, SectionsIPC section_type);
+void shm_det(void* data);
+void shm_destroy(int id, void* data);
 
 void save_a_log(LogType log_type, const char* format, int msq_id);
 
 int queue_length(int msq_id);
 void stand_in_the_queue(Client client, int msq_id);
+
+void init_i18n();
 
 #endif

@@ -1,23 +1,23 @@
-#include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/msg.h>
-#include <sys/ipc.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
 #include "logger.h"
 #include "utils.h"
+#include <fcntl.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <time.h>
+#include <unistd.h>
 
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_sim_settings_id;
-Semaphores *shm_semaphores;
-Queues *shm_queues;
-SimSettings *shm_sim_settings;
+Semaphores* shm_semaphores;
+Queues* shm_queues;
+SimSettings* shm_sim_settings;
 LogMessage msg;
 
 char path[64];
@@ -30,14 +30,16 @@ void shm_close();
 void sigint_handler(int sig);
 void logger();
 
-int main() {
-    mkdir("logi", 0755);
+int main()
+{
+    init_i18n();
+    mkdir("logs", 0755);
     stop_sim = 0;
     signal(SIGINT, sigint_handler);
 
     shm_init();
 
-    sprintf(path, "logi/log_%d.log", (int)time(NULL));
+    sprintf(path, "logs/log_%d.txt", (int)time(NULL));
 
     file = open(path, O_WRONLY | O_CREAT, 0644);
     if (file == -1) {
@@ -55,23 +57,28 @@ int main() {
     exit(0);
 }
 
-void shm_init() {
-    shm_queues = (Queues*) shm_att(&shm_queues_id, QUEUES);
-    shm_semaphores = (Semaphores*) shm_att(&shm_semaphores_id, SEMAPHORES);
-    shm_sim_settings = (SimSettings*) shm_att(&shm_sim_settings_id, SIM_SETTINGS);
+void shm_init()
+{
+    shm_queues = (Queues*)shm_att(&shm_queues_id, QUEUES);
+    shm_semaphores = (Semaphores*)shm_att(&shm_semaphores_id, SEMAPHORES);
+    shm_sim_settings = (SimSettings*)shm_att(&shm_sim_settings_id, SIM_SETTINGS);
 };
 
-void shm_close() {
+void shm_close()
+{
     shm_det(shm_queues);
     shm_det(shm_semaphores);
     shm_det(shm_sim_settings);
 };
 
-void sigint_handler(int sig) {
-    if (sig == SIGINT) stop_sim = 1;
+void sigint_handler(int sig)
+{
+    if (sig == SIGINT)
+        stop_sim = 1;
 }
 
-void logger() {
+void logger()
+{
     if (msgrcv(shm_queues->msq_logger, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
         return;
     }
@@ -80,41 +87,42 @@ void logger() {
     const char* colour = COL_INFO;
 
     switch (msg.log_type) {
-        case LOG_SIM_INFO:
-            prefix = "[INFO] ";
-            colour = COL_INFO;
-            break;
-        case LOG_SIM_WARN: prefix = "[OSTRZERZENIE] ";
+    case LOG_SIM_INFO:
+        prefix = _("[INFO] ");
+        colour = COL_INFO;
+        break;
+    case LOG_SIM_WARN:
+        prefix = _("[WARNING] ");
         colour = COL_WARN;
         break;
-        case LOG_SIM_ERR:
-            prefix = "[ERR] ";
-            colour = COL_ERR;
-            break;
-        case LOG_DEF:
-            prefix = "";
-            colour = COL_DEF;
-            break;
-        case LOG_MANAGER:
-            prefix = "[KIEROWNIK] ";
-            colour = COL_MANAGER;
-            break;
-        case LOG_CLIENT:
-            prefix = "[KLIENT] ";
-            colour = COL_CLIENT;
-            break;
-        case LOG_STAFF:
-            prefix = "[OBSLUGA] ";
-            colour = COL_STAFF;
-            break;
-        case LOG_SS_CHECKOUT:
-            prefix = "[KASA SAMOOBSLUGOWA] ";
-            colour = COL_SS_CHECKOUT;
-            break;
-        case LOG_CHECKOUT:
-            prefix = "[KASA STACJONARNA] ";
-            colour = COL_CHECKOUT;
-            break;
+    case LOG_SIM_ERR:
+        prefix = _("[ERROR] ");
+        colour = COL_ERR;
+        break;
+    case LOG_DEF:
+        prefix = "";
+        colour = COL_DEF;
+        break;
+    case LOG_MANAGER:
+        prefix = _("[MANAGER] ");
+        colour = COL_MANAGER;
+        break;
+    case LOG_CLIENT:
+        prefix = _("[CLIENT] ");
+        colour = COL_CLIENT;
+        break;
+    case LOG_STAFF:
+        prefix = _("[STAFF] ");
+        colour = COL_STAFF;
+        break;
+    case LOG_SS_CHECKOUT:
+        prefix = _("[SELF SERVICE CHECKOUT] ");
+        colour = COL_SS_CHECKOUT;
+        break;
+    case LOG_CHECKOUT:
+        prefix = _("[CHECKOUT] ");
+        colour = COL_CHECKOUT;
+        break;
     }
 
     printf("%s%s%s%s", colour, prefix, msg.message, COL_DEF);
@@ -123,5 +131,3 @@ void logger() {
     sprintf(message_buf, "%s%s", prefix, msg.message);
     write(file, message_buf, strlen(message_buf));
 }
-
-

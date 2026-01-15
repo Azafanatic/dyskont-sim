@@ -1,0 +1,211 @@
+# English translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Kacper <kacper@opensuse>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-15 17:17+0100\n"
+"PO-Revision-Date: 2026-01-15 17:19+0100\n"
+"Last-Translator: Kacper <kacper@opensuse>\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/client.c:71 src/main.c:84 src/self_service_checkout.c:42
+msgid "Fork error\n"
+msgstr "Fork error\n"
+
+#: src/client.c:107
+#, c-format
+msgid "(%d): Hello!\n"
+msgstr "(%d): Hello!\n"
+
+#: src/client.c:110
+#, c-format
+msgid "(%d): I'll buy %d items.\n"
+msgstr "(%d): I'll buy %d items.\n"
+
+#: src/client.c:115
+#, c-format
+msgid "(%d): I'll get in line. My number is %d.\n"
+msgstr "(%d): I'll get in line. My number is %d.\n"
+
+#: src/client.c:126
+#, c-format
+msgid "(%d): Goodbye!\n"
+msgstr "(%d): Goodbye!\n"
+
+#: src/client.c:128 src/client.c:131
+#, c-format
+msgid "(%d): :C\n"
+msgstr "(%d): :C\n"
+
+#: src/logger.c:91
+msgid "[INFO] "
+msgstr "[INFO] "
+
+#: src/logger.c:95
+msgid "[WARNING] "
+msgstr "[WARNING] "
+
+#: src/logger.c:99
+msgid "[ERROR] "
+msgstr "[ERROR] "
+
+#: src/logger.c:107
+msgid "[MANAGER] "
+msgstr "[MANAGER] "
+
+#: src/logger.c:111
+msgid "[CLIENT] "
+msgstr "[CLIENT] "
+
+#: src/logger.c:115
+msgid "[STAFF] "
+msgstr "[STAFF] "
+
+#: src/logger.c:119
+msgid "[SELF SERVICE CHECKOUT] "
+msgstr "[SELF SERVICE CHECKOUT] "
+
+#: src/logger.c:123
+msgid "[CHECKOUT] "
+msgstr "[CHECKOUT] "
+
+#: src/main.c:58
+msgid "Starting the simulation!\n"
+msgstr "Starting the simulation!\n"
+
+#: src/main.c:59
+#, c-format
+msgid ""
+"Sim settings:\n"
+"Time:%d (sec)\t Speed: %d\n"
+msgstr ""
+"Sim settings:\n"
+"Time:%d (sec)\t Speed: %d\n"
+
+#: src/main.c:68
+msgid "Path error\n"
+msgstr "Path error\n"
+
+#: src/main.c:88
+msgid "Exec error\n"
+msgstr "Exec error\n"
+
+#: src/main.c:97
+#, c-format
+msgid ""
+"Customers in the store: %d\t SSC queue length: %d\t Checkouts open: %d\n"
+msgstr ""
+"Customers in the store: %d\t SSC queue length: %d\t Checkouts open: %d\n"
+
+#: src/main.c:103
+msgid "Stopping the simulation...\n"
+msgstr "Stopping the simulation...\n"
+
+#: src/manager.c:51
+msgid "Time to open the store!\n"
+msgstr "Time to open the store!\n"
+
+#: src/manager.c:70
+msgid "Closing the store.\n"
+msgstr "Closing the store.\n"
+
+#: src/manager.c:79
+msgid "Everyone left the store. The store is now closed.\n"
+msgstr "Everyone left the store. The store is now closed.\n"
+
+#: src/self_service_checkout.c:89
+#, c-format
+msgid ""
+"Hello (%d)!\n"
+" Your shopping list:\n"
+msgstr ""
+"Hello (%d)!\n"
+" Your shopping list:\n"
+
+#: src/self_service_checkout.c:126
+#, c-format
+msgid "You're only %d years old, I can't sell you that!\n"
+msgstr "You're only %d years old, I can't sell you that!\n"
+
+#: src/self_service_checkout.c:139
+#, c-format
+msgid ""
+"It'll be: %.2f PLN.\n"
+"Thank you!\n"
+msgstr ""
+"It'll be: %.2f PLN.\n"
+"Thank you!\n"
+
+#: src/self_service_checkout.c:145
+#, c-format
+msgid ""
+"Receipt\n"
+"Client PID: %d\n"
+"Checkout ID: SS_%d\n"
+"Items bought:\n"
+msgstr ""
+"Receipt\n"
+"Client PID: %d\n"
+"Checkout ID: SS_%d\n"
+"Items bought:\n"
+
+#: src/self_service_checkout.c:149
+#, c-format
+msgid "%s - %.2f PLN\n"
+msgstr "%s - %.2f PLN\n"
+
+#: src/self_service_checkout.c:155
+#, c-format
+msgid "Total: %.2f PLN\n"
+msgstr "Total: %.2f PLN\n"
+
+#: src/staff.c:29
+#, c-format
+msgid "Verifying client %d... They are %d yo.\n"
+msgstr "Verifying client %d... They are %d yo.\n"
+
+#: src/staff.c:37
+msgid "Msgsnd error\n"
+msgstr "Msgsnd error\n"
+
+#: src/staff.c:40
+#, c-format
+msgid "Client %d %s\n"
+msgstr "Client %d %s\n"
+
+#: src/staff.c:40
+msgid "is >= 18 yo."
+msgstr "is >= 18 yo."
+
+#: src/staff.c:40
+msgid "is < 18 yo."
+msgstr "is < 18 yo."
+
+#: src/utils.c:36
+msgid "Semop wait error\n"
+msgstr "Semop wait error\n"
+
+#: src/utils.c:48
+msgid "Semop signal error\n"
+msgstr "Semop signal error\n"
+
+#: src/utils.c:73
+msgid "Msgctl error\n"
+msgstr "Msgctl error\n"
+
+#: src/utils.c:129 src/utils.c:176
+msgid "Shmget error\n"
+msgstr "Shmget error\n"
+
+#: src/utils.c:135 src/utils.c:182
+msgid "Shmat error\n"
+msgstr "Shmat error\n"

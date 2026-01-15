@@ -41,5 +41,12 @@
 # debug information files
 *.dwo
 
-# Build directory
+# Directories
 build/
+logs/
+locale/
+
+# Translation files
+en.mo
+pl.mo
+messages.pot
