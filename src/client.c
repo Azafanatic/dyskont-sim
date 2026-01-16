@@ -29,14 +29,47 @@ double wait_time;
 
 bool open;
 
-Product available_products[PRODUCTS_AVAILABLE] = { { "Piwo", 2.99, ALKOHOLE }, { "Wino", 39.99, ALKOHOLE }, { "Wodka", 44.99, ALKOHOLE }, { "Jagermeister", 69.99, ALKOHOLE },
-    { "Whisky", 74.99, ALKOHOLE }, { "Maslo", 9.99, NABIAL }, { "Sok jablkowy", 5.49, SOKI }, { "Sok pomaranczowy", 6.99, SOKI },
-    { "Chleb", 4.29, PIECZYWO }, { "Mleko", 3.19, NABIAL }, { "Jablko", 1.99, OWOCE }, { "Ser zolty", 19.99, NABIAL },
-    { "Szynka", 24.99, WEDLINY }, { "Kawa", 15.99, SUCHE }, { "Herbata", 6.49, INNE }, { "Cukier", 3.79, SUCHE },
-    { "Makaron", 5.29, SUCHE }, { "Ryz", 4.79, SUCHE }, { "Olej", 12.99, INNE }, { "Woda mineralna", 2.49, INNE },
-    { "Cola", 4.99, NAPOJE_GAZOWANE }, { "Czekolada", 5.99, SLODYCZE }, { "Batonik", 2.79, SLODYCZE }, { "Jogurt", 2.29, NABIAL },
-    { "Dzem", 7.49, INNE }, { "Ketchup", 6.99, INNE }, { "Musztarda", 4.99, INNE }, { "Ciasteczka", 5.49, SLODYCZE },
-    { "Mak", 3.99, INNE }, { "Orzechy", 14.99, INNE }, { "Miod", 18.99, INNE }, { "Przyprawy", 3.49, SUCHE } };
+Product available_products[PRODUCTS_AVAILABLE] = {
+    { "Beer", 2.99, ALCOHOL },
+    { "Wine", 39.99, ALCOHOL },
+    { "Vodka", 44.99, ALCOHOL },
+    { "Jagermeister", 69.99, ALCOHOL },
+    { "Whisky", 74.99, ALCOHOL },
+
+    { "Butter", 9.99, DAIRY },
+    { "Apple juice", 5.49, JUICES },
+    { "Orange juice", 6.99, JUICES },
+
+    { "Bread", 4.29, BREAD },
+    { "Milk", 3.19, DAIRY },
+    { "Apple", 1.99, FRUIT },
+    { "Yellow cheese", 19.99, DAIRY },
+
+    { "Ham", 24.99, COLD_CUTS },
+    { "Coffee", 15.99, DRY_GOODS },
+    { "Tea", 6.49, OTHER },
+    { "Sugar", 3.79, DRY_GOODS },
+
+    { "Pasta", 5.29, DRY_GOODS },
+    { "Rice", 4.79, DRY_GOODS },
+    { "Cooking oil", 12.99, OTHER },
+    { "Mineral water", 2.49, OTHER },
+
+    { "Cola", 4.99, CARBONATED_DRINKS },
+    { "Chocolate", 5.99, SWEETS },
+    { "Chocolate bar", 2.79, SWEETS },
+    { "Yogurt", 2.29, DAIRY },
+
+    { "Jam", 7.49, OTHER },
+    { "Ketchup", 6.99, OTHER },
+    { "Mustard", 4.99, OTHER },
+    { "Cookies", 5.49, SWEETS },
+
+    { "Poppy seeds", 3.99, OTHER },
+    { "Nuts", 14.99, OTHER },
+    { "Honey", 18.99, OTHER },
+    { "Spices", 3.49, DRY_GOODS }
+};
 
 void do_some_shopping();
 
@@ -80,7 +113,6 @@ int main(int argc, char* argv[])
         shm_store_data->all_clients = active;
         operation_signal(shm_semaphores->sem_store_data);
 
-        // TODO; znaleźć lepszy sposób na wprowadzanie klientów ze zmiennym tempem
         wait_time = ((6 + (cos(time(NULL) * 10) + 1) * 5 + (rand() % 7)) * 150000) / shm_sim_settings->sim_speed;
         usleep(wait_time * 3);
     }
@@ -92,7 +124,7 @@ int main(int argc, char* argv[])
 
 void do_some_shopping()
 {
-    char logger_message[240];
+    char logger_message[480];
 
     Client client;
     client.number_of_products = MIN_PRODUCTS + rand() % (MAX_PRODUCTS - MIN_PRODUCTS + 1);

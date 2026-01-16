@@ -58,7 +58,8 @@ void save_a_log(LogType log_type, const char* format, int msq_id)
     LogMessage msg;
     msg.message_type = 1;
     msg.log_type = log_type;
-    strncpy(msg.message, format, 255);
+    strncpy(msg.message, format, sizeof(msg.message) - 1);
+    msg.message[sizeof(msg.message) - 1] = '\0'; 
 
     if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
         perror(_("Msgsnd error\n"));

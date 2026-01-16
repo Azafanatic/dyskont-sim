@@ -209,3 +209,120 @@ msgstr "Shmget error\n"
 #: src/utils.c:135 src/utils.c:182
 msgid "Shmat error\n"
 msgstr "Shmat error\n"
+
+msgid "Invalid product weight"
+msgstr "Invalid product weight"
+
+msgid "Invalid barcode"
+msgstr "Invalid barcode"
+
+msgid "Payment problem"
+msgstr "Payment problem"
+
+msgid "Other error"
+msgstr "Other error"
+
+msgid "Self service checkout %d blocked: %s\n"
+msgstr "Self service checkout %d blocked: %s\n"
+
+msgid "Self service checkout %d unblocked.\n"
+msgstr "Self service checkout %d unblocked.\n"
+
+msgid "Staff assistance required: %s\n"
+msgstr "Staff assistance required: %s\n"
+
+msgid "Beer"
+msgstr "Beer"
+
+msgid "Wine"
+msgstr "Wine"
+
+msgid "Vodka"
+msgstr "Vodka"
+
+msgid "Jagermeister"
+msgstr "Jagermeister"
+
+msgid "Whisky"
+msgstr "Whisky"
+
+msgid "Butter"
+msgstr "Butter"
+
+msgid "Apple juice"
+msgstr "Apple juice"
+
+msgid "Orange juice"
+msgstr "Orange juice"
+
+msgid "Bread"
+msgstr "Bread"
+
+msgid "Milk"
+msgstr "Milk"
+
+msgid "Apple"
+msgstr "Apple"
+
+msgid "Yellow cheese"
+msgstr "Yellow cheese"
+
+msgid "Ham"
+msgstr "Ham"
+
+msgid "Coffee"
+msgstr "Coffee"
+
+msgid "Tea"
+msgstr "Tea"
+
+msgid "Sugar"
+msgstr "Sugar"
+
+msgid "Pasta"
+msgstr "Pasta"
+
+msgid "Rice"
+msgstr "Rice"
+
+msgid "Cooking oil"
+msgstr "Cooking oil"
+
+msgid "Mineral water"
+msgstr "Mineral water"
+
+msgid "Cola"
+msgstr "Cola"
+
+msgid "Chocolate"
+msgstr "Chocolate"
+
+msgid "Chocolate bar"
+msgstr "Chocolate bar"
+
+msgid "Yogurt"
+msgstr "Yogurt"
+
+msgid "Jam"
+msgstr "Jam"
+
+msgid "Ketchup"
+msgstr "Ketchup"
+
+msgid "Mustard"
+msgstr "Mustard"
+
+msgid "Cookies"
+msgstr "Cookies"
+
+msgid "Poppy seeds"
+msgstr "Poppy seeds"
+
+msgid "Nuts"
+msgstr "Nuts"
+
+msgid "Honey"
+msgstr "Honey"
+
+msgid "Spices"
+msgstr "Spices"

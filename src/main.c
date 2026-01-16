@@ -9,8 +9,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define MAIN_PROCESSES 6
-
 int shm_sim_settings_id;
 int shm_store_data_id;
 int shm_semaphores_id;
@@ -37,7 +35,6 @@ void msq_destroy();
 
 int main(int argc, char* argv[])
 {
-
     init_i18n();
 
     shm_init();
@@ -51,8 +48,8 @@ int main(int argc, char* argv[])
 
     operation_wait(shm_semaphores->sem_sim_settings);
     shm_sim_settings->stop_sim = 0;
-    shm_sim_settings->sim_length = (argc >= 2) ? atoi(argv[1]) : 3600;
-    shm_sim_settings->sim_speed = (argc >= 3) ? atoi(argv[2]) : 60;
+    shm_sim_settings->sim_length = (argc >= 2) ? atoi(argv[1]) : SIM_LENGTH;
+    shm_sim_settings->sim_speed = (argc >= 3) ? atoi(argv[2]) : SIM_SPEED;
     operation_signal(shm_semaphores->sem_sim_settings);
 
     save_a_log(LOG_SIM_INFO, _("Starting the simulation!\n"), shm_queues->msq_logger);
@@ -183,12 +180,17 @@ void msq_create()
     if (msq_client_resp_id == -1)
         exit(1);
 
+    int msq_ss_staff_id = msgget(MSQ_ID_SS_STAFF, IPC_CREAT | 0600);
+    if (msq_ss_staff_id == -1)
+        exit(1);
+
     operation_wait(shm_semaphores->sem_queues);
     shm_queues->msq_logger = msq_logger_id;
     shm_queues->msq_ss_checkouts = msq_ss_checkouts_id;
     shm_queues->msq_receipts = msq_receipts_id;
     shm_queues->msq_staff = msq_staff_id;
     shm_queues->msq_client_resp = msq_client_resp_id;
+    shm_queues->msq_ss_staff = msq_ss_staff_id;
     operation_signal(shm_semaphores->sem_queues);
 };
 
@@ -201,4 +203,5 @@ void msq_destroy()
     msgctl(shm_queues->msq_receipts, IPC_RMID, NULL);
     msgctl(shm_queues->msq_staff, IPC_RMID, NULL);
     msgctl(shm_queues->msq_client_resp, IPC_RMID, NULL);
+    msgctl(shm_queues->msq_ss_staff, IPC_RMID, NULL);
 };

@@ -190,3 +190,120 @@ msgstr "ma co najmniej 18 lat."
 #: src/staff.c:40
 msgid "is < 18 yo."
 msgstr "ma mniej niż 18 lat."
+
+msgid "Invalid product weight"
+msgstr "Nieprawidłowa waga produktu"
+
+msgid "Invalid barcode"
+msgstr "Nieprawidłowy kod kreskowy"
+
+msgid "Payment problem"
+msgstr "Problem przetważania płatności"
+
+msgid "Other error"
+msgstr "Inny błąd"
+
+msgid "Self service checkout %d blocked: %s\n"
+msgstr "Kasa samoobsługowa %d zablokowana: %s\n"
+
+msgid "Self service checkout %d unblocked.\n"
+msgstr "Kasa samoobsługowa %d odblokowana.\n"
+
+msgid "Staff assistance required: %s\n"
+msgstr "Potrzebna pomoc obsługi: %s\n"
+
+msgid "Beer"
+msgstr "Piwo"
+
+msgid "Wine"
+msgstr "Wino"
+
+msgid "Vodka"
+msgstr "Wódka"
+
+msgid "Jagermeister"
+msgstr "Jägermeister"
+
+msgid "Whisky"
+msgstr "Whisky"
+
+msgid "Butter"
+msgstr "Masło"
+
+msgid "Apple juice"
+msgstr "Sok jabłkowy"
+
+msgid "Orange juice"
+msgstr "Sok pomarańczowy"
+
+msgid "Bread"
+msgstr "Chleb"
+
+msgid "Milk"
+msgstr "Mleko"
+
+msgid "Apple"
+msgstr "Jabłko"
+
+msgid "Yellow cheese"
+msgstr "Ser żółty"
+
+msgid "Ham"
+msgstr "Szynka"
+
+msgid "Coffee"
+msgstr "Kawa"
+
+msgid "Tea"
+msgstr "Herbata"
+
+msgid "Sugar"
+msgstr "Cukier"
+
+msgid "Pasta"
+msgstr "Makaron"
+
+msgid "Rice"
+msgstr "Ryż"
+
+msgid "Cooking oil"
+msgstr "Olej"
+
+msgid "Mineral water"
+msgstr "Woda mineralna"
+
+msgid "Cola"
+msgstr "Cola"
+
+msgid "Chocolate"
+msgstr "Czekolada"
+
+msgid "Chocolate bar"
+msgstr "Batonik"
+
+msgid "Yogurt"
+msgstr "Jogurt"
+
+msgid "Jam"
+msgstr "Dżem"
+
+msgid "Ketchup"
+msgstr "Ketchup"
+
+msgid "Mustard"
+msgstr "Musztarda"
+
+msgid "Cookies"
+msgstr "Ciasteczka"
+
+msgid "Poppy seeds"
+msgstr "Mak"
+
+msgid "Nuts"
+msgstr "Orzechy"
+
+msgid "Honey"
+msgstr "Miód"
+
+msgid "Spices"
+msgstr "Przyprawy"

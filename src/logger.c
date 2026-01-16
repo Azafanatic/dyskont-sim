@@ -127,7 +127,7 @@ void logger()
 
     printf("%s%s%s%s", colour, prefix, msg.message, COL_DEF);
 
-    char message_buf[512];
+    char message_buf[1124];
     sprintf(message_buf, "%s%s", prefix, msg.message);
     write(file, message_buf, strlen(message_buf));
 }

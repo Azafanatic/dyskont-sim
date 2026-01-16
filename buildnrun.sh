@@ -26,4 +26,4 @@ cp -r ../locale ./locale
 cmake ..
 make
 
-./sim 7200 600
+./sim 57600 1920
