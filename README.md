@@ -1,7 +1,3 @@
-Poniżej znajduje się **ten sam plik po pełnej korekcie ortograficznej i interpunkcyjnej**, bez zmian merytorycznych ani stylistycznych wykraczających poza poprawność językową.
-
----
-
 # Symulacja dyskontu
 
 ## 1. Użyty soft
