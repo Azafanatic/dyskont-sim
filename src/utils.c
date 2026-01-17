@@ -59,7 +59,7 @@ void save_a_log(LogType log_type, const char* format, int msq_id)
     msg.message_type = 1;
     msg.log_type = log_type;
     strncpy(msg.message, format, sizeof(msg.message) - 1);
-    msg.message[sizeof(msg.message) - 1] = '\0'; 
+    msg.message[sizeof(msg.message) - 1] = '\0';
 
     if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
         perror(_("Msgsnd error\n"));
@@ -118,9 +118,11 @@ void* shm_att(int* id, SectionsIPC section_type)
     case SS_CHECKOUTS:
         key = SHM_SS_CHECKOUTS;
         size = sizeof(SelfServiceCheckouts);
+        break;
     case CHECKOUTS:
         key = SHM_CHECKOUTS;
-        size = sizeof(Checkout);
+        size = sizeof(Checkouts);
+        break;
     default:
         break;
     }
@@ -165,9 +167,11 @@ void* shm_create(int* id, SectionsIPC section_type)
     case SS_CHECKOUTS:
         key = SHM_SS_CHECKOUTS;
         size = sizeof(SelfServiceCheckouts);
+        break;
     case CHECKOUTS:
         key = SHM_CHECKOUTS;
-        size = sizeof(Checkout);
+        size = sizeof(Checkouts);
+        break;
     default:
         break;
     }

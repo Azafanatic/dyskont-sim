@@ -100,6 +100,7 @@ typedef struct {
     pid_t pid;
     int id;
     int clients_served;
+    time_t last_client;
 } Checkout;
 
 typedef struct {

@@ -16,11 +16,13 @@ int shm_store_data_id;
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_ss_checkouts_id;
+int shm_checkouts_id;
 SimSettings* shm_sim_settings;
 StoreData* shm_store_data;
 Semaphores* shm_semaphores;
 Queues* shm_queues;
 SelfServiceCheckouts* shm_ss_checkouts;
+Checkouts* shm_checkouts;
 
 int active = 0;
 double lambda;
@@ -144,9 +146,23 @@ void do_some_shopping()
 
     usleep(client.shopping_time);
 
-    sprintf(logger_message, _("(%d) I'll get in line. My number is %d.\n"), client.id, queue_length(shm_queues->msq_ss_checkouts));
-    save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
-    stand_in_the_queue(client, shm_queues->msq_ss_checkouts);
+    if (rand() % 100 < 5) {
+
+        int msq;
+        if (shm_checkouts->checkout[1].open == 1) {
+            msq = (queue_length(shm_queues->msq_checkout_one) <= queue_length(shm_queues->msq_checkout_two)) ? shm_queues->msq_checkout_one : shm_queues->msq_checkout_two;
+        } else {
+            msq = shm_queues->msq_checkout_one;
+        }
+        sprintf(logger_message, _("(%d) I'll get in line for checkout. My number is %d.\n"), client.id, queue_length(msq));
+        save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
+        stand_in_the_queue(client, msq);
+
+    } else {
+        sprintf(logger_message, _("(%d) I'll get in line for self-service. My number is %d.\n"), client.id, queue_length(shm_queues->msq_ss_checkouts));
+        save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
+        stand_in_the_queue(client, shm_queues->msq_ss_checkouts);
+    }
 
     ClientResponse cresp;
     if (msgrcv(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), (long)client.id, 0) != -1) {
@@ -175,6 +191,7 @@ void shm_init()
     shm_store_data = (StoreData*)shm_att(&shm_store_data_id, STORE_DATA);
     shm_sim_settings = (SimSettings*)shm_att(&shm_sim_settings_id, SIM_SETTINGS);
     shm_ss_checkouts = (SelfServiceCheckouts*)shm_att(&shm_ss_checkouts_id, SS_CHECKOUTS);
+    shm_checkouts = (Checkouts*)shm_att(&shm_checkouts_id, CHECKOUTS);
 };
 
 void shm_close()
@@ -184,4 +201,5 @@ void shm_close()
     shm_det(shm_store_data);
     shm_det(shm_sim_settings);
     shm_det(shm_ss_checkouts);
+    shm_det(shm_checkouts);
 };

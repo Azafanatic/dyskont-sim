@@ -14,11 +14,13 @@ int shm_store_data_id;
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_ss_checkouts_id;
+int shm_checkouts_id;
 SimSettings* shm_sim_settings;
 StoreData* shm_store_data;
 Semaphores* shm_semaphores;
 Queues* shm_queues;
 SelfServiceCheckouts* shm_ss_checkouts;
+Checkouts* shm_checkouts;
 
 pid_t pids[MAIN_PROCESSES];
 char logger_message[240];
@@ -91,10 +93,25 @@ int main(int argc, char* argv[])
     signal(SIGINT, sigint_handler);
 
     while (!shm_sim_settings->stop_sim) {
-        sprintf(logger_message, _("Customers in the store: %d\t SSC queue length: %d\t Checkouts open: %d\n"), shm_store_data->all_clients, queue_length(shm_queues->msq_ss_checkouts), shm_ss_checkouts->checkouts_opened);
+        sprintf(logger_message, _("Customers in the store: %d\t SSC queue: %d\t SSC open: %d\n"), shm_store_data->all_clients, queue_length(shm_queues->msq_ss_checkouts), shm_ss_checkouts->checkouts_opened);
+        save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
+
+        // TODO; Zmień język
+        sprintf(logger_message, _("Checkout one queue: %d\t Checkout two queue: %d\t Checkouts open: %d\n"), queue_length(shm_queues->msq_checkout_one), queue_length(shm_queues->msq_checkout_two), shm_checkouts->checkouts_opened);
         save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
 
         usleep(10000000 / shm_sim_settings->sim_speed);
+    }
+
+    save_a_log(LOG_SIM_INFO, _("Clients served:\nSelf service checkouts:\n"), shm_queues->msq_logger);
+    for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
+        sprintf(logger_message, _("(%d) : %d clients.\n"), i, shm_ss_checkouts->checkout[i].clients_served);
+        save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
+    }
+    save_a_log(LOG_SIM_INFO, _("Checkouts:\n"), shm_queues->msq_logger);
+    for (int i = MAX_SS_CHECKOUTS; i < MAX_SS_CHECKOUTS + MAX_CHECKOUTS; i++) {
+        sprintf(logger_message, _("(%d) : %d clients.\n"), i - MAX_SS_CHECKOUTS, shm_checkouts->checkout[i - MAX_SS_CHECKOUTS].clients_served);
+        save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
     }
 
     save_a_log(LOG_SIM_INFO, _("Stopping the simulation...\n"), shm_queues->msq_logger);
@@ -131,6 +148,7 @@ void shm_init()
     shm_store_data = (StoreData*)shm_create(&shm_store_data_id, STORE_DATA);
     shm_sim_settings = (SimSettings*)shm_create(&shm_sim_settings_id, SIM_SETTINGS);
     shm_ss_checkouts = (SelfServiceCheckouts*)shm_create(&shm_ss_checkouts_id, SS_CHECKOUTS);
+    shm_checkouts = (Checkouts*)shm_create(&shm_checkouts_id, CHECKOUTS);
 };
 
 void shm_close()
@@ -140,6 +158,7 @@ void shm_close()
     shm_destroy(shm_store_data_id, shm_store_data);
     shm_destroy(shm_sim_settings_id, shm_sim_settings);
     shm_destroy(shm_ss_checkouts_id, shm_ss_checkouts);
+    shm_destroy(shm_checkouts_id, shm_checkouts);
 };
 
 void sem_create()
@@ -184,6 +203,14 @@ void msq_create()
     if (msq_ss_staff_id == -1)
         exit(1);
 
+    int msq_checkout_one_id = msgget(MSQ_ID_CHECKOUT_ONE, IPC_CREAT | 0600);
+    if (msq_checkout_one_id == -1)
+        exit(1);
+
+    int msq_checkout_two_id = msgget(MSQ_ID_CHECKOUT_TWO, IPC_CREAT | 0600);
+    if (msq_checkout_two_id == -1)
+        exit(1);
+
     operation_wait(shm_semaphores->sem_queues);
     shm_queues->msq_logger = msq_logger_id;
     shm_queues->msq_ss_checkouts = msq_ss_checkouts_id;
@@ -191,6 +218,8 @@ void msq_create()
     shm_queues->msq_staff = msq_staff_id;
     shm_queues->msq_client_resp = msq_client_resp_id;
     shm_queues->msq_ss_staff = msq_ss_staff_id;
+    shm_queues->msq_checkout_one = msq_checkout_one_id;
+    shm_queues->msq_checkout_two = msq_checkout_two_id;
     operation_signal(shm_semaphores->sem_queues);
 };
 

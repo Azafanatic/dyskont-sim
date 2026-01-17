@@ -58,8 +58,6 @@ int main(int argc, char* argv[])
     }
     operation_signal(shm_semaphores->sem_checkouts);
 
-    // char logger_message[320];
-
     while (!shm_sim_settings->stop_sim) {
         usleep(10000000. / shm_sim_settings->sim_speed);
     }
@@ -101,7 +99,7 @@ void serve_the_customer(int new_id)
         strcat(logger_message, logger_message_buf);
 
         for (int i = 0; i < msg.client.number_of_products; i++) {
-            sprintf(logger_message_buf, "%s ", msg.client.products[i].name);
+            sprintf(logger_message_buf, "%s ", _(msg.client.products[i].name));
             strcat(logger_message, logger_message_buf);
         }
         sprintf(logger_message_buf, "\n");
