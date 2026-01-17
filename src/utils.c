@@ -1,7 +1,9 @@
 #include "utils.h"
+
 #include <errno.h>
 #include <libgen.h>
 #include <libintl.h>
+#include <limits.h>
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,20 +11,50 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/sem.h>
+#include <sys/shm.h>
 #include <unistd.h>
 
-/** @brief Creates a semaphore */
-int create_a_semaphore(int key)
+/** @brief Generates a System V IPC key using ftok */
+key_t generate_key(int proj_id)
 {
+    if (proj_id < 1 || proj_id > 255) {
+        fprintf(stderr, "Invalid proj_id for ftok(): %d\n", proj_id);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Ensure key file exists */
+    FILE* f = fopen(IPC_KEY_FILE, "a");
+    if (!f) {
+        perror("fopen IPC_KEY_FILE");
+        exit(EXIT_FAILURE);
+    }
+    fclose(f);
+
+    key_t key = ftok(IPC_KEY_FILE, proj_id);
+    if (key == -1) {
+        perror("ftok");
+        exit(EXIT_FAILURE);
+    }
+
+    return key;
+}
+
+/** @brief Creates a semaphore */
+int create_a_semaphore(int proj_id)
+{
+    key_t key = generate_key(proj_id);
+
     int semID = semget(key, 1, 0666 | IPC_CREAT);
     if (semID == -1) {
-        perror(_("Semget error\n"));
+        perror(_("semget error"));
         exit(EXIT_FAILURE);
     }
+
     if (semctl(semID, 0, SETVAL, 1) == -1) {
-        perror(_("Semctl error\n"));
+        perror(_("semctl SETVAL error"));
         exit(EXIT_FAILURE);
     }
+
     return semID;
 }
 
@@ -30,7 +62,7 @@ int create_a_semaphore(int key)
 void del_a_semaphore(int semID)
 {
     if (semctl(semID, 0, IPC_RMID) == -1) {
-        perror(_("Semctl error\n"));
+        perror(_("semctl IPC_RMID error"));
     }
 }
 
@@ -42,7 +74,8 @@ void operation_wait(int semID)
     while (semop(semID, &sb, 1) == -1) {
         if (errno == EINTR)
             continue;
-        perror(_("Semop wait error\n"));
+
+        perror(_("semop wait error"));
         exit(EXIT_FAILURE);
     }
 }
@@ -51,11 +84,12 @@ void operation_wait(int semID)
 void operation_signal(int semID)
 {
     struct sembuf sb = { 0, 1, SEM_UNDO };
+
     while (semop(semID, &sb, 1) == -1) {
-        if (errno == EINTR) {
+        if (errno == EINTR)
             continue;
-        }
-        perror(_("Semop signal error\n"));
+
+        perror(_("semop signal error"));
         exit(EXIT_FAILURE);
     }
 }
@@ -69,12 +103,12 @@ void save_a_log(LogType log_type, const char* format, int msq_id)
     LogMessage msg;
     msg.message_type = 1;
     msg.log_type = log_type;
+
     strncpy(msg.message, format, sizeof(msg.message) - 1);
     msg.message[sizeof(msg.message) - 1] = '\0';
 
     if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
-        perror(_("Msgsnd error\n"));
-        return;
+        perror(_("msgsnd error"));
     }
 }
 
@@ -82,141 +116,129 @@ void save_a_log(LogType log_type, const char* format, int msq_id)
 int queue_length(int msq_id)
 {
     struct msqid_ds buf;
+
     if (msgctl(msq_id, IPC_STAT, &buf) == -1) {
-        perror(_("Msgctl error\n"));
+        perror(_("msgctl IPC_STAT error"));
         return -1;
     }
+
     return buf.msg_qnum;
-};
+}
 
-/** @brief Attaches shared memory */
-void* shm_att(int* id, SectionsIPC section_type)
+/** @brief Resolves shared memory parameters for given section */
+static void get_shm_params(
+    SectionsIPC section_type,
+    int* proj_id,
+    size_t* size)
 {
-    key_t key;
-    size_t size;
-    void* pointer;
-
     switch (section_type) {
     case SEMAPHORES:
-        key = SHM_SEMAPHORES;
-        size = sizeof(Semaphores);
+        *proj_id = SHM_SEMAPHORES;
+        *size = sizeof(Semaphores);
         break;
     case QUEUES:
-        key = SHM_QUEUES;
-        size = sizeof(Queues);
+        *proj_id = SHM_QUEUES;
+        *size = sizeof(Queues);
         break;
     case STORE_DATA:
-        key = SHM_STORE_DATA;
-        size = sizeof(StoreData);
+        *proj_id = SHM_STORE_DATA;
+        *size = sizeof(StoreData);
         break;
     case SIM_SETTINGS:
-        key = SHM_SIM_SETTINGS;
-        size = sizeof(SimSettings);
+        *proj_id = SHM_SIM_SETTINGS;
+        *size = sizeof(SimSettings);
         break;
     case SS_CHECKOUTS:
-        key = SHM_SS_CHECKOUTS;
-        size = sizeof(SelfServiceCheckouts);
+        *proj_id = SHM_SS_CHECKOUTS;
+        *size = sizeof(SelfServiceCheckouts);
         break;
     case CHECKOUTS:
-        key = SHM_CHECKOUTS;
-        size = sizeof(Checkouts);
+        *proj_id = SHM_CHECKOUTS;
+        *size = sizeof(Checkouts);
         break;
     default:
-        break;
+        fprintf(stderr, "Unknown shared memory section\n");
+        exit(EXIT_FAILURE);
     }
-
-    *id = shmget(key, size, 0666);
-    if (*id == -1) {
-        perror(_("Shmget error\n"));
-        exit(1);
-    }
-
-    pointer = shmat(*id, NULL, 0);
-    if (pointer == (void*)-1) {
-        perror(_("Shmat error\n"));
-        exit(1);
-    }
-    return pointer;
-};
+}
 
 /** @brief Creates shared memory */
 void* shm_create(int* id, SectionsIPC section_type)
 {
-    key_t key;
+    int proj_id;
     size_t size;
-    void* pointer;
 
-    switch (section_type) {
-    case SEMAPHORES:
-        key = SHM_SEMAPHORES;
-        size = sizeof(Semaphores);
-        break;
-    case QUEUES:
-        key = SHM_QUEUES;
-        size = sizeof(Queues);
-        break;
-    case STORE_DATA:
-        key = SHM_STORE_DATA;
-        size = sizeof(StoreData);
-        break;
-    case SIM_SETTINGS:
-        key = SHM_SIM_SETTINGS;
-        size = sizeof(SimSettings);
-        break;
-    case SS_CHECKOUTS:
-        key = SHM_SS_CHECKOUTS;
-        size = sizeof(SelfServiceCheckouts);
-        break;
-    case CHECKOUTS:
-        key = SHM_CHECKOUTS;
-        size = sizeof(Checkouts);
-        break;
-    default:
-        break;
-    }
+    get_shm_params(section_type, &proj_id, &size);
+
+    key_t key = generate_key(proj_id);
 
     *id = shmget(key, size, IPC_CREAT | 0666);
     if (*id == -1) {
-        perror(_("Shmget error\n"));
-        exit(1);
+        perror(_("shmget create error"));
+        exit(EXIT_FAILURE);
     }
 
-    pointer = shmat(*id, NULL, 0);
-    if (pointer == (void*)-1) {
-        perror(_("Shmat error\n"));
-        exit(1);
+    void* ptr = shmat(*id, NULL, 0);
+    if (ptr == (void*)-1) {
+        perror(_("shmat error"));
+        exit(EXIT_FAILURE);
     }
-    return pointer;
-};
 
-/** @brief Destroys shared memory */
-void shm_destroy(int id, void* data)
+    return ptr;
+}
+
+/** @brief Attaches shared memory */
+void* shm_att(int* id, SectionsIPC section_type)
 {
-    if (shmdt(data) == -1) {
-        perror(_("Shmdt error\n"));
+    int proj_id;
+    size_t size;
+
+    get_shm_params(section_type, &proj_id, &size);
+
+    key_t key = generate_key(proj_id);
+
+    *id = shmget(key, size, 0666);
+    if (*id == -1) {
+        perror(_("shmget attach error"));
+        exit(EXIT_FAILURE);
     }
-    if (shmctl(id, IPC_RMID, NULL) == -1) {
-        perror(_("Shmctl error\n"));
+
+    void* ptr = shmat(*id, NULL, 0);
+    if (ptr == (void*)-1) {
+        perror(_("shmat error"));
+        exit(EXIT_FAILURE);
     }
-};
+
+    return ptr;
+}
 
 /** @brief Detaches shared memory */
 void shm_det(void* data)
 {
     if (shmdt(data) == -1) {
-        perror(_("Shmdt error\n"));
+        perror(_("shmdt error"));
     }
-};
+}
+
+/** @brief Destroys shared memory */
+void shm_destroy(int id, void* data)
+{
+    shm_det(data);
+
+    if (shmctl(id, IPC_RMID, NULL) == -1) {
+        perror(_("shmctl IPC_RMID error"));
+    }
+}
 
 /** @brief Initializes internationalization */
-void init_i18n()
+void init_i18n(void)
 {
     setlocale(LC_ALL, "");
 
     char exe_path[PATH_MAX];
     ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
     if (len == -1) {
-        perror(_("Readlink error\n"));
+        perror(_("readlink error"));
         return;
     }
 

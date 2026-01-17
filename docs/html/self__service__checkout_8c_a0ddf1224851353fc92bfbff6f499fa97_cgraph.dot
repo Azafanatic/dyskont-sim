@@ -7,7 +7,7 @@ digraph "main"
   rankdir="LR";
   Node1 [id="Node000001",label="main",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
   Node1 -> Node2 [id="edge1_Node000001_Node000002",color="steelblue1",style="solid",tooltip=" "];
-  Node2 [id="Node000002",label="init_i18n",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#ab4e1de2c5a9b1d119c9a27ecd4326d9b",tooltip="Initializes internationalization."];
+  Node2 [id="Node000002",label="init_i18n",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a8ca7bc595c06ee74bb6eece0c4dc7e7b",tooltip="Initializes internationalization."];
   Node1 -> Node3 [id="edge2_Node000001_Node000003",color="steelblue1",style="solid",tooltip=" "];
   Node3 [id="Node000003",label="operation_signal",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a25c83609ccc2e50ebebae04f40068617",tooltip="Signals semaphore."];
   Node1 -> Node4 [id="edge3_Node000001_Node000004",color="steelblue1",style="solid",tooltip=" "];
@@ -31,6 +31,8 @@ digraph "main"
   Node11 [id="Node000011",label="shm_init",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$self__service__checkout_8c.html#a8783f1dc5cba51d08d91b280b1e012a8",tooltip="Initializes shared memory implementation."];
   Node11 -> Node12 [id="edge14_Node000011_Node000012",color="steelblue1",style="solid",tooltip=" "];
   Node12 [id="Node000012",label="shm_att",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a9e5c704d1674b88dcfca7733bedb53cb",tooltip="Attaches shared memory."];
-  Node1 -> Node13 [id="edge15_Node000001_Node000013",color="steelblue1",style="solid",tooltip=" "];
-  Node13 [id="Node000013",label="sigalrm_handler",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$checkout_8c.html#adad73be642889ec5a245216570fd44b9",tooltip="Handles SIGALRM signal."];
+  Node12 -> Node13 [id="edge15_Node000012_Node000013",color="steelblue1",style="solid",tooltip=" "];
+  Node13 [id="Node000013",label="generate_key",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a3569cbde47ce2a9a776b072075e3a9cd",tooltip="Generates a System V IPC key using ftok."];
+  Node1 -> Node14 [id="edge16_Node000001_Node000014",color="steelblue1",style="solid",tooltip=" "];
+  Node14 [id="Node000014",label="sigalrm_handler",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$checkout_8c.html#adad73be642889ec5a245216570fd44b9",tooltip="Handles SIGALRM signal."];
 }

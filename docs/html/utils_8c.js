@@ -1,8 +1,9 @@
 var utils_8c =
 [
-    [ "create_a_semaphore", "utils_8c.html#a1178ea7ead07df0cf5dd946834b95961", null ],
+    [ "create_a_semaphore", "utils_8c.html#a1586f831476b24c7f1d9d6f1e4665acb", null ],
     [ "del_a_semaphore", "utils_8c.html#a9ecf649ead0c7025e7d6188808172e94", null ],
-    [ "init_i18n", "utils_8c.html#ab4e1de2c5a9b1d119c9a27ecd4326d9b", null ],
+    [ "generate_key", "utils_8c.html#a3569cbde47ce2a9a776b072075e3a9cd", null ],
+    [ "init_i18n", "utils_8c.html#a8ca7bc595c06ee74bb6eece0c4dc7e7b", null ],
     [ "operation_signal", "utils_8c.html#a25c83609ccc2e50ebebae04f40068617", null ],
     [ "operation_wait", "utils_8c.html#a337db545fd3919ecc5a5e8b22c60a2f4", null ],
     [ "queue_length", "utils_8c.html#a34519cc3f9a8fd5d63003f0cd38c0750", null ],

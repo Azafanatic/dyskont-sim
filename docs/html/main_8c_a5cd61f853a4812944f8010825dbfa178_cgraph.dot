@@ -7,5 +7,7 @@ digraph "sem_create"
   rankdir="LR";
   Node1 [id="Node000001",label="sem_create",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip="Creates semaphores."];
   Node1 -> Node2 [id="edge1_Node000001_Node000002",color="steelblue1",style="solid",tooltip=" "];
-  Node2 [id="Node000002",label="create_a_semaphore",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a1178ea7ead07df0cf5dd946834b95961",tooltip="Creates a semaphore."];
+  Node2 [id="Node000002",label="create_a_semaphore",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a1586f831476b24c7f1d9d6f1e4665acb",tooltip="Creates a semaphore."];
+  Node2 -> Node3 [id="edge2_Node000002_Node000003",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="generate_key",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a3569cbde47ce2a9a776b072075e3a9cd",tooltip="Generates a System V IPC key using ftok."];
 }

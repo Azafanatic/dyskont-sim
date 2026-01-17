@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <fcntl.h>
 #include <libintl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -57,6 +58,23 @@ void set_simulation_settings(int argc, char* argv[]);
 int main(int argc, char* argv[])
 {
     init_i18n();
+
+    {
+        /** @brief IPC file path */
+        char path[64];
+        /** @brief IPC file descriptor */
+        int file;
+
+        file = open(IPC_KEY_FILE, O_WRONLY | O_CREAT, 0644);
+        if (file == -1) {
+            perror(_("Open error\n"));
+            exit(1);
+        }
+
+        if (close(file) == -1) {
+            perror(_("Close error\n"));
+        }
+    }
 
     shm_init();
     sem_create();

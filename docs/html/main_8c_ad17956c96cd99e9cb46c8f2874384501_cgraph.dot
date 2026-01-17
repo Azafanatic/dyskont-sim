@@ -8,4 +8,6 @@ digraph "shm_close"
   Node1 [id="Node000001",label="shm_close",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip="Closes shared memory."];
   Node1 -> Node2 [id="edge1_Node000001_Node000002",color="steelblue1",style="solid",tooltip=" "];
   Node2 [id="Node000002",label="shm_destroy",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a62c3f7fa44d0709c6f69b4a7c9b6440b",tooltip="Destroys shared memory."];
+  Node2 -> Node3 [id="edge2_Node000002_Node000003",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="shm_det",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#acb8f14b677c4e9fd049519f0ccf8f88e",tooltip="Detaches shared memory."];
 }

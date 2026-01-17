@@ -96,6 +96,7 @@ $(function(){initNavTree('utils_8c.html','',''); });
 <code>#include &lt;errno.h&gt;</code><br />
 <code>#include &lt;libgen.h&gt;</code><br />
 <code>#include &lt;libintl.h&gt;</code><br />
+<code>#include &lt;limits.h&gt;</code><br />
 <code>#include &lt;locale.h&gt;</code><br />
 <code>#include &lt;stdio.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
@@ -103,6 +104,7 @@ $(function(){initNavTree('utils_8c.html','',''); });
 <code>#include &lt;sys/ipc.h&gt;</code><br />
 <code>#include &lt;sys/msg.h&gt;</code><br />
 <code>#include &lt;sys/sem.h&gt;</code><br />
+<code>#include &lt;sys/shm.h&gt;</code><br />
 <code>#include &lt;unistd.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for utils.c:</div>
@@ -112,8 +114,10 @@ Include dependency graph for utils.c:</div>
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a1178ea7ead07df0cf5dd946834b95961" id="r_a1178ea7ead07df0cf5dd946834b95961"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a1178ea7ead07df0cf5dd946834b95961">create_a_semaphore</a> (int key)</td></tr>
-<tr class="memdesc:a1178ea7ead07df0cf5dd946834b95961"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a semaphore.  <br /></td></tr>
+<tr class="memitem:a3569cbde47ce2a9a776b072075e3a9cd" id="r_a3569cbde47ce2a9a776b072075e3a9cd"><td class="memItemLeft">key_t&#160;</td><td class="memItemRight"><a class="el" href="#a3569cbde47ce2a9a776b072075e3a9cd">generate_key</a> (int proj_id)</td></tr>
+<tr class="memdesc:a3569cbde47ce2a9a776b072075e3a9cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generates a System V IPC key using ftok.  <br /></td></tr>
+<tr class="memitem:a1586f831476b24c7f1d9d6f1e4665acb" id="r_a1586f831476b24c7f1d9d6f1e4665acb"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a1586f831476b24c7f1d9d6f1e4665acb">create_a_semaphore</a> (int proj_id)</td></tr>
+<tr class="memdesc:a1586f831476b24c7f1d9d6f1e4665acb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a semaphore.  <br /></td></tr>
 <tr class="memitem:a9ecf649ead0c7025e7d6188808172e94" id="r_a9ecf649ead0c7025e7d6188808172e94"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9ecf649ead0c7025e7d6188808172e94">del_a_semaphore</a> (int semID)</td></tr>
 <tr class="memdesc:a9ecf649ead0c7025e7d6188808172e94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deletes a semaphore.  <br /></td></tr>
 <tr class="memitem:a337db545fd3919ecc5a5e8b22c60a2f4" id="r_a337db545fd3919ecc5a5e8b22c60a2f4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a337db545fd3919ecc5a5e8b22c60a2f4">operation_wait</a> (int semID)</td></tr>
@@ -124,20 +128,20 @@ Functions</h2></td></tr>
 <tr class="memdesc:aee92e4f9420367f9fc2365286998b4d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves a log message.  <br /></td></tr>
 <tr class="memitem:a34519cc3f9a8fd5d63003f0cd38c0750" id="r_a34519cc3f9a8fd5d63003f0cd38c0750"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a34519cc3f9a8fd5d63003f0cd38c0750">queue_length</a> (int msq_id)</td></tr>
 <tr class="memdesc:a34519cc3f9a8fd5d63003f0cd38c0750"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets queue length.  <br /></td></tr>
-<tr class="memitem:a9e5c704d1674b88dcfca7733bedb53cb" id="r_a9e5c704d1674b88dcfca7733bedb53cb"><td class="memItemLeft">void *&#160;</td><td class="memItemRight"><a class="el" href="#a9e5c704d1674b88dcfca7733bedb53cb">shm_att</a> (int *<a class="el" href="checkout_8c.html#a7441ef0865bcb3db9b8064dd7375c1ea">id</a>, <a class="el" href="utils_8h.html#ae7d9e0d20365d361c07c8ff63f4c7f0e">SectionsIPC</a> section_type)</td></tr>
-<tr class="memdesc:a9e5c704d1674b88dcfca7733bedb53cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attaches shared memory.  <br /></td></tr>
 <tr class="memitem:a19e5aebd0457c149db3e632a95b0f54a" id="r_a19e5aebd0457c149db3e632a95b0f54a"><td class="memItemLeft">void *&#160;</td><td class="memItemRight"><a class="el" href="#a19e5aebd0457c149db3e632a95b0f54a">shm_create</a> (int *<a class="el" href="checkout_8c.html#a7441ef0865bcb3db9b8064dd7375c1ea">id</a>, <a class="el" href="utils_8h.html#ae7d9e0d20365d361c07c8ff63f4c7f0e">SectionsIPC</a> section_type)</td></tr>
 <tr class="memdesc:a19e5aebd0457c149db3e632a95b0f54a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates shared memory.  <br /></td></tr>
-<tr class="memitem:a62c3f7fa44d0709c6f69b4a7c9b6440b" id="r_a62c3f7fa44d0709c6f69b4a7c9b6440b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a62c3f7fa44d0709c6f69b4a7c9b6440b">shm_destroy</a> (int <a class="el" href="checkout_8c.html#a7441ef0865bcb3db9b8064dd7375c1ea">id</a>, void *data)</td></tr>
-<tr class="memdesc:a62c3f7fa44d0709c6f69b4a7c9b6440b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroys shared memory.  <br /></td></tr>
+<tr class="memitem:a9e5c704d1674b88dcfca7733bedb53cb" id="r_a9e5c704d1674b88dcfca7733bedb53cb"><td class="memItemLeft">void *&#160;</td><td class="memItemRight"><a class="el" href="#a9e5c704d1674b88dcfca7733bedb53cb">shm_att</a> (int *<a class="el" href="checkout_8c.html#a7441ef0865bcb3db9b8064dd7375c1ea">id</a>, <a class="el" href="utils_8h.html#ae7d9e0d20365d361c07c8ff63f4c7f0e">SectionsIPC</a> section_type)</td></tr>
+<tr class="memdesc:a9e5c704d1674b88dcfca7733bedb53cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attaches shared memory.  <br /></td></tr>
 <tr class="memitem:acb8f14b677c4e9fd049519f0ccf8f88e" id="r_acb8f14b677c4e9fd049519f0ccf8f88e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb8f14b677c4e9fd049519f0ccf8f88e">shm_det</a> (void *data)</td></tr>
 <tr class="memdesc:acb8f14b677c4e9fd049519f0ccf8f88e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detaches shared memory.  <br /></td></tr>
-<tr class="memitem:ab4e1de2c5a9b1d119c9a27ecd4326d9b" id="r_ab4e1de2c5a9b1d119c9a27ecd4326d9b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab4e1de2c5a9b1d119c9a27ecd4326d9b">init_i18n</a> ()</td></tr>
-<tr class="memdesc:ab4e1de2c5a9b1d119c9a27ecd4326d9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes internationalization.  <br /></td></tr>
+<tr class="memitem:a62c3f7fa44d0709c6f69b4a7c9b6440b" id="r_a62c3f7fa44d0709c6f69b4a7c9b6440b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a62c3f7fa44d0709c6f69b4a7c9b6440b">shm_destroy</a> (int <a class="el" href="checkout_8c.html#a7441ef0865bcb3db9b8064dd7375c1ea">id</a>, void *data)</td></tr>
+<tr class="memdesc:a62c3f7fa44d0709c6f69b4a7c9b6440b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroys shared memory.  <br /></td></tr>
+<tr class="memitem:a8ca7bc595c06ee74bb6eece0c4dc7e7b" id="r_a8ca7bc595c06ee74bb6eece0c4dc7e7b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8ca7bc595c06ee74bb6eece0c4dc7e7b">init_i18n</a> (void)</td></tr>
+<tr class="memdesc:a8ca7bc595c06ee74bb6eece0c4dc7e7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes internationalization.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a1178ea7ead07df0cf5dd946834b95961" name="a1178ea7ead07df0cf5dd946834b95961"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1178ea7ead07df0cf5dd946834b95961">&#9670;&#160;</a></span>create_a_semaphore()</h2>
+<a id="a1586f831476b24c7f1d9d6f1e4665acb" name="a1586f831476b24c7f1d9d6f1e4665acb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1586f831476b24c7f1d9d6f1e4665acb">&#9670;&#160;</a></span>create_a_semaphore()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -160,9 +164,14 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Semaphore ID </dd></dl>
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="utils_8c_a1586f831476b24c7f1d9d6f1e4665acb_cgraph.png" border="0" usemap="#autils_8c_a1586f831476b24c7f1d9d6f1e4665acb_cgraph" loading="lazy" alt=""/></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="utils_8c_a1178ea7ead07df0cf5dd946834b95961_icgraph.png" border="0" usemap="#autils_8c_a1178ea7ead07df0cf5dd946834b95961_icgraph" loading="lazy" alt=""/></div>
+<div class="center"><img src="utils_8c_a1586f831476b24c7f1d9d6f1e4665acb_icgraph.png" border="0" usemap="#autils_8c_a1586f831476b24c7f1d9d6f1e4665acb_icgraph" loading="lazy" alt=""/></div>
 </div>
 
 </div>
@@ -197,8 +206,33 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="ab4e1de2c5a9b1d119c9a27ecd4326d9b" name="ab4e1de2c5a9b1d119c9a27ecd4326d9b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab4e1de2c5a9b1d119c9a27ecd4326d9b">&#9670;&#160;</a></span>init_i18n()</h2>
+<a id="a3569cbde47ce2a9a776b072075e3a9cd" name="a3569cbde47ce2a9a776b072075e3a9cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3569cbde47ce2a9a776b072075e3a9cd">&#9670;&#160;</a></span>generate_key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">key_t generate_key </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>proj_id</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Generates a System V IPC key using ftok. </p>
+<p>Generates a key using ftok. </p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="utils_8c_a3569cbde47ce2a9a776b072075e3a9cd_icgraph.png" border="0" usemap="#autils_8c_a3569cbde47ce2a9a776b072075e3a9cd_icgraph" loading="lazy" alt=""/></div>
+</div>
+
+</div>
+</div>
+<a id="a8ca7bc595c06ee74bb6eece0c4dc7e7b" name="a8ca7bc595c06ee74bb6eece0c4dc7e7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ca7bc595c06ee74bb6eece0c4dc7e7b">&#9670;&#160;</a></span>init_i18n()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -206,7 +240,7 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">void init_i18n </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -216,7 +250,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="utils_8c_ab4e1de2c5a9b1d119c9a27ecd4326d9b_icgraph.png" border="0" usemap="#autils_8c_ab4e1de2c5a9b1d119c9a27ecd4326d9b_icgraph" loading="lazy" alt=""/></div>
+<div class="center"><img src="utils_8c_a8ca7bc595c06ee74bb6eece0c4dc7e7b_icgraph.png" border="0" usemap="#autils_8c_a8ca7bc595c06ee74bb6eece0c4dc7e7b_icgraph" loading="lazy" alt=""/></div>
 </div>
 
 </div>
@@ -375,6 +409,11 @@ Here is the caller graph for this function:</div>
 <p>Attaches shared memory. </p>
 <p>Attaches to shared memory. </p>
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="utils_8c_a9e5c704d1674b88dcfca7733bedb53cb_cgraph.png" border="0" usemap="#autils_8c_a9e5c704d1674b88dcfca7733bedb53cb_cgraph" loading="lazy" alt=""/></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="utils_8c_a9e5c704d1674b88dcfca7733bedb53cb_icgraph.png" border="0" usemap="#autils_8c_a9e5c704d1674b88dcfca7733bedb53cb_icgraph" loading="lazy" alt=""/></div>
@@ -411,6 +450,11 @@ Here is the caller graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to shared memory </dd></dl>
 <div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="utils_8c_a19e5aebd0457c149db3e632a95b0f54a_cgraph.png" border="0" usemap="#autils_8c_a19e5aebd0457c149db3e632a95b0f54a_cgraph" loading="lazy" alt=""/></div>
+</div>
+<div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="utils_8c_a19e5aebd0457c149db3e632a95b0f54a_icgraph.png" border="0" usemap="#autils_8c_a19e5aebd0457c149db3e632a95b0f54a_icgraph" loading="lazy" alt=""/></div>
@@ -445,6 +489,11 @@ Here is the caller graph for this function:</div>
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="utils_8c_a62c3f7fa44d0709c6f69b4a7c9b6440b_cgraph.png" border="0" usemap="#autils_8c_a62c3f7fa44d0709c6f69b4a7c9b6440b_cgraph" loading="lazy" alt=""/></div>
+</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">

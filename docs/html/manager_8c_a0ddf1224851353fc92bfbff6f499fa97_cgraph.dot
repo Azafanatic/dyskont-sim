@@ -26,7 +26,7 @@ digraph "main"
   Node2 -> Node5 [id="edge11_Node000002_Node000005",color="steelblue1",style="solid",tooltip=" "];
   Node2 -> Node6 [id="edge12_Node000002_Node000006",color="steelblue1",style="solid",tooltip=" "];
   Node1 -> Node9 [id="edge13_Node000001_Node000009",color="steelblue1",style="solid",tooltip=" "];
-  Node9 [id="Node000009",label="init_i18n",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#ab4e1de2c5a9b1d119c9a27ecd4326d9b",tooltip="Initializes internationalization."];
+  Node9 [id="Node000009",label="init_i18n",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a8ca7bc595c06ee74bb6eece0c4dc7e7b",tooltip="Initializes internationalization."];
   Node1 -> Node10 [id="edge14_Node000001_Node000010",color="steelblue1",style="solid",tooltip=" "];
   Node10 [id="Node000010",label="shm_close",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$manager_8c.html#ad17956c96cd99e9cb46c8f2874384501",tooltip="Closes shared memory implementation."];
   Node10 -> Node11 [id="edge15_Node000010_Node000011",color="steelblue1",style="solid",tooltip=" "];
@@ -35,4 +35,6 @@ digraph "main"
   Node12 [id="Node000012",label="shm_init",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$manager_8c.html#a8783f1dc5cba51d08d91b280b1e012a8",tooltip="Initializes shared memory implementation."];
   Node12 -> Node13 [id="edge17_Node000012_Node000013",color="steelblue1",style="solid",tooltip=" "];
   Node13 [id="Node000013",label="shm_att",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a9e5c704d1674b88dcfca7733bedb53cb",tooltip="Attaches shared memory."];
+  Node13 -> Node14 [id="edge18_Node000013_Node000014",color="steelblue1",style="solid",tooltip=" "];
+  Node14 [id="Node000014",label="generate_key",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a3569cbde47ce2a9a776b072075e3a9cd",tooltip="Generates a System V IPC key using ftok."];
 }

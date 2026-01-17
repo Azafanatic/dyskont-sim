@@ -13,6 +13,8 @@
 #define _(STRING) gettext(STRING)
 #define LOCALEDIR "./locale"
 
+#define IPC_KEY_FILE "/tmp/dyskont_sim.ipc"
+
 #define MAX_SIM_LENGTH 86400
 #define MAX_SIM_SPEED 1800
 #define MAIN_PROCESSES 6
@@ -25,28 +27,31 @@
 #define SIM_SPEED 600
 #define SIM_LENGTH 7200
 
-#define SEM_ID_SS_QUEUE 6840
-#define SEM_ID_QUEUE 6841
-#define SEM_ID_CHECKOUTS 6842
-#define SEM_ID_QUEUES 6843
-#define SEM_ID_STORE_DATA 6844
-#define SEM_ID_SIM_SETTINGS 6845
+#define SEM_ID_SS_QUEUE 1
+#define SEM_ID_QUEUE 2
+#define SEM_ID_CHECKOUTS 3
+#define SEM_ID_QUEUES 4
+#define SEM_ID_STORE_DATA 5
+#define SEM_ID_SIM_SETTINGS 6
 
-#define SHM_SEMAPHORES 4580
-#define SHM_QUEUES 4581
-#define SHM_STORE_DATA 4582
-#define SHM_SS_CHECKOUTS 4583
-#define SHM_CHECKOUTS 4584
-#define SHM_SIM_SETTINGS 4585
+#define SHM_SEMAPHORES 1
+#define SHM_QUEUES 2
+#define SHM_STORE_DATA 3
+#define SHM_SS_CHECKOUTS 4
+#define SHM_CHECKOUTS 5
+#define SHM_SIM_SETTINGS 6
 
-#define MSQ_ID_LOGGER 6840
-#define MSQ_ID_SS_CHECKOUTS 6841
-#define MSQ_ID_CHECKOUT_ONE 6842
-#define MSQ_ID_CHECKOUT_TWO 6843
-#define MSQ_ID_RECEIPTS 6844
-#define MSQ_ID_STAFF 6845
-#define MSQ_ID_CLIENT_RESP 6846
-#define MSQ_ID_SS_STAFF 6847
+#define MSQ_ID_LOGGER 1
+#define MSQ_ID_SS_CHECKOUTS 2
+#define MSQ_ID_CHECKOUT_ONE 3
+#define MSQ_ID_CHECKOUT_TWO 4
+#define MSQ_ID_RECEIPTS 5
+#define MSQ_ID_STAFF 6
+#define MSQ_ID_CLIENT_RESP 7
+#define MSQ_ID_SS_STAFF 8
+
+/** @brief Generates a key using ftok */
+key_t generate_key(int proj_id);
 
 /** @brief IPC section types */
 typedef enum {

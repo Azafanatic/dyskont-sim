@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['k_0',['K',['../manager_8c.html#a97d832ae23af4f215e801e37e4f94254',1,'manager.c']]]
+  ['juices_0',['JUICES',['../utils_8h.html#ae48044d14afee988d539f9ca9f2c5b40a85b129ed3911305ee1388437659d28be',1,'utils.h']]]
 ];

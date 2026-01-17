@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['leave_5fthe_5fqueue_0',['leave_the_queue',['../client_8c.html#a0f3c5ec391d908e64852b8238d140f32',1,'client.c']]],
-  ['logger_1',['logger',['../logger_8c.html#a32382986c6aaa8ed1c7a70108a040ad8',1,'logger.c']]]
+  ['init_5fi18n_0',['init_i18n',['../utils_8c.html#a8ca7bc595c06ee74bb6eece0c4dc7e7b',1,'init_i18n(void):&#160;utils.c'],['../utils_8h.html#ab4e1de2c5a9b1d119c9a27ecd4326d9b',1,'init_i18n():&#160;utils.c']]]
 ];

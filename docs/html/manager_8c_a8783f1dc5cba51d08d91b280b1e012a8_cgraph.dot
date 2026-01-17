@@ -8,4 +8,6 @@ digraph "shm_init"
   Node1 [id="Node000001",label="shm_init",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip="Initializes shared memory implementation."];
   Node1 -> Node2 [id="edge1_Node000001_Node000002",color="steelblue1",style="solid",tooltip=" "];
   Node2 [id="Node000002",label="shm_att",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a9e5c704d1674b88dcfca7733bedb53cb",tooltip="Attaches shared memory."];
+  Node2 -> Node3 [id="edge2_Node000002_Node000003",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="generate_key",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a3569cbde47ce2a9a776b072075e3a9cd",tooltip="Generates a System V IPC key using ftok."];
 }

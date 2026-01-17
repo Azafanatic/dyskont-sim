@@ -30,6 +30,6 @@ var searchData=
   ['col_5fstaff_27',['COL_STAFF',['../logger_8h.html#a5baa26730eb3f450465569f015557af5',1,'logger.h']]],
   ['col_5fwarn_28',['COL_WARN',['../logger_8h.html#a662425412e85c3bec596addf689bc76d',1,'logger.h']]],
   ['cold_5fcuts_29',['COLD_CUTS',['../utils_8h.html#ae48044d14afee988d539f9ca9f2c5b40a50415abeea8fa3370aa6928db79396e9',1,'utils.h']]],
-  ['create_5fa_5fsemaphore_30',['create_a_semaphore',['../utils_8c.html#a1178ea7ead07df0cf5dd946834b95961',1,'create_a_semaphore(int key):&#160;utils.c'],['../utils_8h.html#a1178ea7ead07df0cf5dd946834b95961',1,'create_a_semaphore(int key):&#160;utils.c']]],
+  ['create_5fa_5fsemaphore_30',['create_a_semaphore',['../utils_8c.html#a1586f831476b24c7f1d9d6f1e4665acb',1,'create_a_semaphore(int proj_id):&#160;utils.c'],['../utils_8h.html#a1178ea7ead07df0cf5dd946834b95961',1,'create_a_semaphore(int key):&#160;utils.c']]],
   ['cresp_31',['cresp',['../client_8c.html#aacf49da6b3bc858e6e1e94b6a83dc021',1,'client.c']]]
 ];

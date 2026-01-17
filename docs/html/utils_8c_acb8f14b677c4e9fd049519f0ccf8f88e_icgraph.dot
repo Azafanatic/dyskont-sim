@@ -10,4 +10,10 @@ digraph "shm_det"
   Node2 [id="Node000002",label="shm_close",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$checkout_8c.html#ad17956c96cd99e9cb46c8f2874384501",tooltip="Closes shared memory."];
   Node2 -> Node3 [id="edge2_Node000002_Node000003",dir="back",color="steelblue1",style="solid",tooltip=" "];
   Node3 [id="Node000003",label="main",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$checkout_8c.html#a0ddf1224851353fc92bfbff6f499fa97",tooltip=" "];
+  Node1 -> Node4 [id="edge3_Node000001_Node000004",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node4 [id="Node000004",label="shm_destroy",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a62c3f7fa44d0709c6f69b4a7c9b6440b",tooltip="Destroys shared memory."];
+  Node4 -> Node5 [id="edge4_Node000004_Node000005",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node5 [id="Node000005",label="shm_close",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$main_8c.html#ad17956c96cd99e9cb46c8f2874384501",tooltip="Closes shared memory."];
+  Node5 -> Node6 [id="edge5_Node000005_Node000006",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node6 [id="Node000006",label="main",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$main_8c.html#a0ddf1224851353fc92bfbff6f499fa97",tooltip="Main function."];
 }
