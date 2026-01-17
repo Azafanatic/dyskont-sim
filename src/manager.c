@@ -2,7 +2,6 @@
 #include <fcntl.h>
 #include <math.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -34,6 +33,7 @@ void do_work();
 void shm_init();
 void shm_close();
 void menage_checkouts();
+void close_all_checkouts();
 
 int main(int argc, char* argv[])
 {
@@ -65,42 +65,49 @@ void do_work()
         usleep(10.0 * 1000000 / shm_sim_settings->sim_speed);
     }
 
-    save_a_log(LOG_MANAGER, _("Closing the store.\n"), shm_queues->msq_logger);
-
-    operation_wait(shm_semaphores->sem_store_data);
-    shm_store_data->open = false;
-    operation_signal(shm_semaphores->sem_store_data);
-
-    operation_wait(shm_semaphores->sem_checkouts);
-    for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
-        shm_ss_checkouts->checkout[i].open = (i < 3) ? 1 : 0;
-    }
-    kill(shm_checkouts->checkout[0].pid, SIGUSR1);
-    kill(shm_checkouts->checkout[1].pid, SIGUSR1);
-    shm_checkouts->checkouts_opened = 2;
-    shm_ss_checkouts->checkouts_opened = 3;
-    operation_signal(shm_semaphores->sem_checkouts);
-
-    while (true) {
-        if (shm_store_data->all_clients <= 0) {
-            save_a_log(LOG_MANAGER, _("Everyone left the store. The store is now closed.\n"), shm_queues->msq_logger);
-            save_a_log(LOG_MANAGER, _("Closing all checkouts...\n"), shm_queues->msq_logger);
-            operation_wait(shm_semaphores->sem_checkouts);
-            for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
-                shm_ss_checkouts->checkout[i].open = 0;
+    if (shm_sim_settings->evacuation) {
+        save_a_log(LOG_MANAGER, _("Time to evacuate!\n"), shm_queues->msq_logger);
+        operation_wait(shm_semaphores->sem_store_data);
+        shm_store_data->open = false;
+        operation_signal(shm_semaphores->sem_store_data);
+        kill(getppid(), SIGALRM);
+        close_all_checkouts();
+        while (true) {
+            if (shm_store_data->all_clients <= 0) {
+                save_a_log(LOG_MANAGER, _("Everyone left the store. The store is now closed.\n"), shm_queues->msq_logger);
+                exit(0);
             }
-            kill(shm_checkouts->checkout[0].pid, SIGUSR2);
-            kill(shm_checkouts->checkout[1].pid, SIGUSR2);
-            shm_checkouts->checkouts_opened = 0;
-            shm_ss_checkouts->checkouts_opened = 0;
-            operation_signal(shm_semaphores->sem_checkouts);
-
-            usleep(11000000 / shm_sim_settings->sim_speed);
-
-            kill(getppid(), SIGINT);
-            exit(0);
+            usleep(10.0 * 1000000 / shm_sim_settings->sim_speed);
         }
-        usleep(10.0 * 1000000 / shm_sim_settings->sim_speed);
+    } else {
+        save_a_log(LOG_MANAGER, _("Closing the store.\n"), shm_queues->msq_logger);
+
+        operation_wait(shm_semaphores->sem_store_data);
+        shm_store_data->open = false;
+        operation_signal(shm_semaphores->sem_store_data);
+
+        operation_wait(shm_semaphores->sem_checkouts);
+        for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
+            shm_ss_checkouts->checkout[i].open = (i < 3) ? 1 : 0;
+        }
+        kill(shm_checkouts->checkout[0].pid, SIGUSR1);
+        kill(shm_checkouts->checkout[1].pid, SIGUSR1);
+        shm_checkouts->checkouts_opened = 2;
+        shm_ss_checkouts->checkouts_opened = 3;
+        operation_signal(shm_semaphores->sem_checkouts);
+
+        while (true) {
+            if (shm_store_data->all_clients <= 0) {
+                save_a_log(LOG_MANAGER, _("Everyone left the store. The store is now closed.\n"), shm_queues->msq_logger);
+                close_all_checkouts();
+
+                usleep(11000000 / shm_sim_settings->sim_speed);
+
+                kill(getppid(), SIGINT);
+                exit(0);
+            }
+            usleep(10.0 * 1000000 / shm_sim_settings->sim_speed);
+        }
     }
 };
 
@@ -191,4 +198,18 @@ void shm_close()
     shm_det(shm_sim_settings);
     shm_det(shm_ss_checkouts);
     shm_det(shm_checkouts);
+};
+
+void close_all_checkouts()
+{
+    save_a_log(LOG_MANAGER, _("Closing all checkouts...\n"), shm_queues->msq_logger);
+    operation_wait(shm_semaphores->sem_checkouts);
+    for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
+        shm_ss_checkouts->checkout[i].open = 0;
+    }
+    kill(shm_checkouts->checkout[0].pid, SIGUSR2);
+    kill(shm_checkouts->checkout[1].pid, SIGUSR2);
+    shm_checkouts->checkouts_opened = 0;
+    shm_ss_checkouts->checkouts_opened = 0;
+    operation_signal(shm_semaphores->sem_checkouts);
 };

@@ -26,6 +26,7 @@ char logger_message[480];
 char logger_message_buf[80];
 
 void unblock_handler(int sig);
+void sigalrm_handler(int sig);
 
 pid_t pids[MAX_SS_CHECKOUTS];
 
@@ -58,6 +59,8 @@ int main(int argc, char* argv[])
     }
     operation_signal(shm_semaphores->sem_checkouts);
 
+    signal(SIGALRM, sigalrm_handler);
+
     while (!shm_sim_settings->stop_sim) {
         usleep(10000000. / shm_sim_settings->sim_speed);
     }
@@ -68,6 +71,7 @@ int main(int argc, char* argv[])
 
 void serve_the_customer(int new_id)
 {
+    signal(SIGALRM, SIG_DFL);
     id = new_id;
 
     srand(time(NULL) + id);
@@ -230,4 +234,11 @@ void am_i_blcked()
 void unblock_handler(int sig)
 {
     shm_ss_checkouts->checkout[id].blocked = 0;
+}
+
+void sigalrm_handler(int sig)
+{
+    for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
+        kill(pids[i], SIGTERM);
+    }
 }

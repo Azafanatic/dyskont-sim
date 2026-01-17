@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <math.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/msg.h>
@@ -90,6 +91,8 @@ void choose_checkout();
 void choose_ss_checkout();
 void leave_the_queue(pid_t client_id, int msq_id);
 
+void sigalrm_handler(int sig);
+
 int main(int argc, char* argv[])
 {
     init_i18n();
@@ -97,8 +100,9 @@ int main(int argc, char* argv[])
     shm_init();
 
     srand(time(NULL));
+    signal(SIGALRM, sigalrm_handler);
 
-    while (!stop_sim) {
+    while (!shm_sim_settings->stop_sim) {
 
         for (int i = 0; i < active; i++) {
             pid_t ret = waitpid(pids[i], NULL, WNOHANG);
@@ -325,4 +329,12 @@ void leave_the_queue(pid_t client_id, int msq_id)
         }
     }
     operation_signal(shm_semaphores->sem_checkouts);
+}
+
+void sigalrm_handler(int sig)
+{
+    for (int i = 0; i < active; i++) {
+        if (pids[i] != 0)
+            kill(pids[i], SIGTERM);
+    }
 }

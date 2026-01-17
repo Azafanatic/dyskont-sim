@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <libintl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +26,7 @@ Checkouts* shm_checkouts;
 pid_t pids[MAIN_PROCESSES];
 char logger_message[240];
 
-void sigint_handler(int sig);
+void sig_handler(int sig);
 
 void shm_init();
 void sem_create();
@@ -49,9 +50,11 @@ int main(int argc, char* argv[])
     operation_signal(shm_semaphores->sem_store_data);
 
     operation_wait(shm_semaphores->sem_sim_settings);
+    int evacuate = (rand() % 100 < 10) ? 1 : 0;
     shm_sim_settings->stop_sim = 0;
     shm_sim_settings->sim_length = (argc >= 2) ? atoi(argv[1]) : SIM_LENGTH;
     shm_sim_settings->sim_speed = (argc >= 3) ? atoi(argv[2]) : SIM_SPEED;
+    shm_sim_settings->evacuation = (argc >= 4) ? atoi(argv[3]) : evacuate;
     operation_signal(shm_semaphores->sem_sim_settings);
 
     save_a_log(LOG_SIM_INFO, _("Starting the simulation!\n"), shm_queues->msq_logger);
@@ -90,7 +93,8 @@ int main(int argc, char* argv[])
         }
     }
 
-    signal(SIGINT, sigint_handler);
+    signal(SIGINT, sig_handler);
+    signal(SIGALRM, sig_handler);
 
     while (!shm_sim_settings->stop_sim) {
         sprintf(logger_message, _("Customers in the store: %d\t SSC queue: %d\t SSC open: %d\n"), shm_store_data->all_clients, queue_length(shm_queues->msq_ss_checkouts), shm_ss_checkouts->checkouts_opened);
@@ -102,6 +106,8 @@ int main(int argc, char* argv[])
         usleep(10000000 / shm_sim_settings->sim_speed);
     }
 
+    save_a_log(LOG_SIM_INFO, _("Stopping the simulation...\n"), shm_queues->msq_logger);
+
     save_a_log(LOG_SIM_INFO, _("Clients served:\nSelf service checkouts:\n"), shm_queues->msq_logger);
     for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
         sprintf(logger_message, _("(%d) : %d clients.\n"), i, shm_ss_checkouts->checkout[i].clients_served);
@@ -112,8 +118,6 @@ int main(int argc, char* argv[])
         sprintf(logger_message, _("(%d) : %d clients.\n"), i - MAX_SS_CHECKOUTS, shm_checkouts->checkout[i - MAX_SS_CHECKOUTS].clients_served);
         save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
     }
-
-    save_a_log(LOG_SIM_INFO, _("Stopping the simulation...\n"), shm_queues->msq_logger);
 
     usleep(1000000);
 
@@ -131,13 +135,16 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void sigint_handler(int sig)
+void sig_handler(int sig)
 {
-    if (sig == SIGINT) {
-        operation_wait(shm_semaphores->sem_sim_settings);
-        shm_sim_settings->stop_sim = 1;
-        operation_signal(shm_semaphores->sem_sim_settings);
-    }
+    operation_wait(shm_semaphores->sem_sim_settings);
+    shm_sim_settings->stop_sim = 1;
+    if (sig == SIGALRM) {
+        for (int i = 2; i < MAIN_PROCESSES; i++) {
+            kill(pids[i], SIGALRM);
+        };
+    };
+    operation_signal(shm_semaphores->sem_sim_settings);
 };
 
 void shm_init()

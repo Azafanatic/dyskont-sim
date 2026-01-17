@@ -162,6 +162,7 @@ typedef struct {
     int sim_length;
     int sim_speed;
     sig_atomic_t stop_sim;
+    sig_atomic_t evacuation;
 } SimSettings;
 
 typedef struct {
