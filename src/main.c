@@ -36,6 +36,9 @@ void shm_close();
 void sem_destroy();
 void msq_destroy();
 
+int parse_int(const char* arg, int min, int max, const char* name);
+void set_simulation_settings(int argc, char* argv[]);
+
 int main(int argc, char* argv[])
 {
     init_i18n();
@@ -49,13 +52,7 @@ int main(int argc, char* argv[])
     shm_store_data->all_clients = 0;
     operation_signal(shm_semaphores->sem_store_data);
 
-    operation_wait(shm_semaphores->sem_sim_settings);
-    int evacuate = (rand() % 100 < 10) ? 1 : 0;
-    shm_sim_settings->stop_sim = 0;
-    shm_sim_settings->sim_length = (argc >= 2) ? atoi(argv[1]) : SIM_LENGTH;
-    shm_sim_settings->sim_speed = (argc >= 3) ? atoi(argv[2]) : SIM_SPEED;
-    shm_sim_settings->evacuation = (argc >= 4) ? atoi(argv[3]) : evacuate;
-    operation_signal(shm_semaphores->sem_sim_settings);
+    set_simulation_settings(argc, argv);
 
     save_a_log(LOG_SIM_INFO, _("Starting the simulation!\n"), shm_queues->msq_logger);
     sprintf(logger_message, _("Sim settings:\nTime:%d (sec)\t Speed: %d\n"), shm_sim_settings->sim_length, shm_sim_settings->sim_speed);
@@ -94,6 +91,7 @@ int main(int argc, char* argv[])
     }
 
     signal(SIGINT, sig_handler);
+    signal(SIGTERM, sig_handler);
     signal(SIGALRM, sig_handler);
 
     while (!shm_sim_settings->stop_sim) {
@@ -139,12 +137,12 @@ void sig_handler(int sig)
 {
     operation_wait(shm_semaphores->sem_sim_settings);
     shm_sim_settings->stop_sim = 1;
+    operation_signal(shm_semaphores->sem_sim_settings);
     if (sig == SIGALRM) {
         for (int i = 2; i < MAIN_PROCESSES; i++) {
             kill(pids[i], SIGALRM);
         };
     };
-    operation_signal(shm_semaphores->sem_sim_settings);
 };
 
 void shm_init()
@@ -240,3 +238,40 @@ void msq_destroy()
     msgctl(shm_queues->msq_client_resp, IPC_RMID, NULL);
     msgctl(shm_queues->msq_ss_staff, IPC_RMID, NULL);
 };
+
+int parse_int(const char* arg, int min, int max, const char* name)
+{
+    char* endptr;
+    errno = 0;
+    long value = strtol(arg, &endptr, 10);
+
+    if (errno != 0 || *endptr != '\0') {
+        fprintf(stderr, _("Error: %s must be a whole number.\n"), name);
+        exit(EXIT_FAILURE);
+    }
+
+    if (value < min || value > max) {
+        fprintf(stderr,
+            _("Error: %s must be between [%d] and [%d].\n"),
+            name, min, max);
+        exit(EXIT_FAILURE);
+    }
+
+    return (int)value;
+}
+
+void set_simulation_settings(int argc, char* argv[])
+{
+    int evacuate = (rand() % 100 < 10) ? 1 : 0;
+
+    operation_wait(shm_semaphores->sem_sim_settings);
+
+    shm_sim_settings->stop_sim = 0;
+
+    shm_sim_settings->sim_length = (argc >= 2) ? parse_int(argv[1], 1, MAX_SIM_LENGTH, _("Sim length")) : SIM_LENGTH;
+
+    shm_sim_settings->sim_speed = (argc >= 3) ? parse_int(argv[2], 1, MAX_SIM_SPEED, _("Sim speed")) : SIM_SPEED;
+
+    shm_sim_settings->evacuation = (argc >= 4) ? parse_int(argv[3], 0, 1, _("Evacuation (0/1)")) : evacuate;
+    operation_signal(shm_semaphores->sem_sim_settings);
+}

@@ -1,6 +1,7 @@
 #ifndef DYSKONT_UTILS_H
 #define DYSKONT_UTILS_H
 
+#include <errno.h>
 #include <libintl.h>
 #include <limits.h>
 #include <signal.h>
@@ -12,8 +13,10 @@
 #define _(STRING) gettext(STRING)
 #define LOCALEDIR "./locale"
 
+#define MAX_SIM_LENGTH 86400
+#define MAX_SIM_SPEED 1800
 #define MAIN_PROCESSES 6
-#define MAX_CLIENTS 256
+#define MAX_CLIENTS 128
 #define MIN_PRODUCTS 3
 #define MAX_PRODUCTS 10
 #define PRODUCTS_AVAILABLE 32
@@ -161,8 +164,8 @@ typedef struct {
 typedef struct {
     int sim_length;
     int sim_speed;
-    sig_atomic_t stop_sim;
-    sig_atomic_t evacuation;
+    volatile sig_atomic_t stop_sim;
+    int evacuation;
 } SimSettings;
 
 typedef struct {

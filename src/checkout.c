@@ -26,10 +26,11 @@ int id;
 char logger_message[480];
 char logger_message_buf[80];
 
+pid_t pids[MAX_SS_CHECKOUTS];
+int clients_left;
+
 void sigusr_handler(int sig);
 void sigalrm_handler(int sig);
-
-pid_t pids[MAX_SS_CHECKOUTS];
 
 void serve_the_customer(int new_id);
 void shm_init();
@@ -82,8 +83,10 @@ void serve_the_customer(int new_id)
     signal(SIGUSR1, sigusr_handler);
     signal(SIGUSR2, sigusr_handler);
 
+    clients_left = 0;
+
     while (!shm_sim_settings->stop_sim) {
-        if (shm_checkouts->checkout[id].open == 0) {
+        if (shm_checkouts->checkout[id].open == 0 && clients_left == 0) {
             usleep(500000 / shm_sim_settings->sim_speed);
             continue;
         };
@@ -109,7 +112,6 @@ void serve_the_customer(int new_id)
         } else {
             break;
         };
-        shm_checkouts->checkout[id].last_client = time(NULL);
 
         strcpy(logger_message, "");
         strcpy(logger_message_buf, "");
@@ -188,7 +190,14 @@ void serve_the_customer(int new_id)
 
         operation_wait(shm_semaphores->sem_checkouts);
         shm_checkouts->checkout[id].clients_served++;
+        shm_checkouts->checkout[id].last_client = time(NULL);
         operation_signal(shm_semaphores->sem_checkouts);
+
+        if (shm_checkouts->checkout[id].open == 0 && clients_left > 0) {
+            clients_left--;
+        } else {
+            clients_left = 0;
+        }
     }
     exit(0);
 };
@@ -217,6 +226,11 @@ void sigusr_handler(int sig)
         shm_checkouts->checkout[id].open = 1;
     } else {
         shm_checkouts->checkout[id].open = 0;
+        if (id == 0) {
+            clients_left = queue_length(shm_queues->msq_checkout_one);
+        } else {
+            clients_left = queue_length(shm_queues->msq_checkout_two);
+        }
     }
 }
 

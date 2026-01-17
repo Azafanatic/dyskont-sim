@@ -29,4 +29,4 @@ cp -r ../locale ./locale
 cmake ..
 make
 
-./sim 57600 5760
+./sim 36000 1800 1

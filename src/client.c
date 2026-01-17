@@ -221,6 +221,10 @@ void stand_in_the_queue(Client client, int msq_id)
     if (msq_id == -1)
         return;
 
+    while (queue_length(msq_id) >= 100) {
+        usleep(10000000 / shm_sim_settings->sim_speed);
+    }
+
     ClientMessage msg;
     msg.message_type = 1;
     msg.client = client;
@@ -233,9 +237,7 @@ void stand_in_the_queue(Client client, int msq_id)
 
 void choose_ss_checkout()
 {
-    sprintf(logger_message,
-        _("(%d) I'll get in line for checkout. My number is %d.\n"),
-        client.id, queue_length(msq));
+    sprintf(logger_message, _("(%d) I'll get in line for checkout. My number is %d.\n"), client.id, queue_length(msq));
     save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
 
     int waited = 0;
@@ -269,10 +271,7 @@ void choose_ss_checkout()
 
 void choose_checkout()
 {
-    sprintf(logger_message,
-        _("(%d) I'll get in line for self-service. My number is %d.\n"),
-        client.id,
-        queue_length(shm_queues->msq_ss_checkouts));
+    sprintf(logger_message, _("(%d) I'll get in line for self-service. My number is %d.\n"), client.id, queue_length(shm_queues->msq_ss_checkouts));
     save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
 
     bool coin_flipped = false;
@@ -294,9 +293,7 @@ void choose_checkout()
 
     leave_the_queue(client.id, msq);
 
-    sprintf(logger_message,
-        _("(%d) Oh! The second checkout has opened!\n"),
-        client.id);
+    sprintf(logger_message, _("(%d) Oh! The second checkout has opened!\n"), client.id);
     save_a_log(LOG_SIM_WARN, logger_message, shm_queues->msq_logger);
 
     msq = shm_queues->msq_checkout_two;
@@ -325,7 +322,7 @@ void leave_the_queue(pid_t client_id, int msq_id)
                 sizeof(buffer[i]) - sizeof(long),
                 0)
             == -1) {
-            perror("leave_the_queue: msgsnd");
+            perror(_("Msgsnd error\n"));
         }
     }
     operation_signal(shm_semaphores->sem_checkouts);
