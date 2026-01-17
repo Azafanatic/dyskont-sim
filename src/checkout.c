@@ -138,6 +138,8 @@ void serve_the_customer(int new_id)
 
         if (alcohol) {
             approved = (msg.client.age >= 18) ? true : false;
+        } else {
+            approved = true;
         }
 
         if (!approved) {

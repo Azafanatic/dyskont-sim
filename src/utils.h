@@ -13,7 +13,7 @@
 #define LOCALEDIR "./locale"
 
 #define MAIN_PROCESSES 6
-#define MAX_CLIENTS 100
+#define MAX_CLIENTS 256
 #define MIN_PRODUCTS 3
 #define MAX_PRODUCTS 10
 #define PRODUCTS_AVAILABLE 32
@@ -198,7 +198,6 @@ void shm_destroy(int id, void* data);
 void save_a_log(LogType log_type, const char* format, int msq_id);
 
 int queue_length(int msq_id);
-void stand_in_the_queue(Client client, int msq_id);
 
 void init_i18n();
 

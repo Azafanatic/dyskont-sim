@@ -7,6 +7,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#define T 60.0 * 1000000
+
 pid_t pids[MAX_CLIENTS];
 
 volatile sig_atomic_t stop_sim = 0;
@@ -24,10 +26,14 @@ Queues* shm_queues;
 SelfServiceCheckouts* shm_ss_checkouts;
 Checkouts* shm_checkouts;
 
-int active = 0;
-double lambda;
-double u;
 double wait_time;
+
+int msq;
+ClientResponse cresp;
+char logger_message[480];
+Client client;
+
+int active;
 
 bool open;
 
@@ -77,6 +83,12 @@ void do_some_shopping();
 
 void shm_init();
 void shm_close();
+void pick_a_queue();
+void stand_in_the_queue(Client client, int msq_id);
+
+void choose_checkout();
+void choose_ss_checkout();
+void leave_the_queue(pid_t client_id, int msq_id);
 
 int main(int argc, char* argv[])
 {
@@ -116,7 +128,7 @@ int main(int argc, char* argv[])
         operation_signal(shm_semaphores->sem_store_data);
 
         wait_time = ((6 + (cos(time(NULL) * 10) + 1) * 5 + (rand() % 7)) * 150000) / shm_sim_settings->sim_speed;
-        usleep(wait_time * 3);
+        usleep(wait_time * 2);
     }
 
     shm_close();
@@ -126,9 +138,6 @@ int main(int argc, char* argv[])
 
 void do_some_shopping()
 {
-    char logger_message[480];
-
-    Client client;
     client.number_of_products = MIN_PRODUCTS + rand() % (MAX_PRODUCTS - MIN_PRODUCTS + 1);
     client.shopping_time = (double)(60 + 30 * client.number_of_products) / shm_sim_settings->sim_speed * 1000000;
     client.id = getpid();
@@ -146,35 +155,21 @@ void do_some_shopping()
 
     usleep(client.shopping_time);
 
-    if (rand() % 100 < 5) {
+    pick_a_queue();
+    stand_in_the_queue(client, msq);
 
-        int msq;
-        if (shm_checkouts->checkout[1].open == 1) {
-            msq = (queue_length(shm_queues->msq_checkout_one) <= queue_length(shm_queues->msq_checkout_two)) ? shm_queues->msq_checkout_one : shm_queues->msq_checkout_two;
-        } else {
-            msq = shm_queues->msq_checkout_one;
-        }
-        sprintf(logger_message, _("(%d) I'll get in line for checkout. My number is %d.\n"), client.id, queue_length(msq));
-        save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
-        stand_in_the_queue(client, msq);
-
+    if (msq == shm_queues->msq_ss_checkouts) {
+        choose_ss_checkout();
     } else {
-        sprintf(logger_message, _("(%d) I'll get in line for self-service. My number is %d.\n"), client.id, queue_length(shm_queues->msq_ss_checkouts));
-        save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
-        stand_in_the_queue(client, shm_queues->msq_ss_checkouts);
+        choose_checkout();
     }
 
-    ClientResponse cresp;
-    if (msgrcv(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), (long)client.id, 0) != -1) {
-        if (cresp.approved) {
-            ReceiptMessage receipt;
-            if (msgrcv(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), (long)client.id, 0) != -1) {
-                save_a_log(LOG_CLIENT, receipt.message, shm_queues->msq_logger);
-            }
-            sprintf(logger_message, _("(%d): Goodbye!\n"), getpid());
-        } else {
-            sprintf(logger_message, _("(%d): :C\n"), getpid());
+    if (cresp.approved) {
+        ReceiptMessage receipt;
+        if (msgrcv(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), (long)client.id, 0) != -1) {
+            save_a_log(LOG_CLIENT, receipt.message, shm_queues->msq_logger);
         }
+        sprintf(logger_message, _("(%d): Goodbye!\n"), getpid());
     } else {
         sprintf(logger_message, _("(%d): :C\n"), getpid());
     }
@@ -203,3 +198,131 @@ void shm_close()
     shm_det(shm_ss_checkouts);
     shm_det(shm_checkouts);
 };
+
+void pick_a_queue()
+{
+    if (rand() % 100 < 5) {
+        if (shm_checkouts->checkout[1].open == 1) {
+            msq = (queue_length(shm_queues->msq_checkout_one) <= queue_length(shm_queues->msq_checkout_two)) ? shm_queues->msq_checkout_one : shm_queues->msq_checkout_two;
+        } else {
+            msq = shm_queues->msq_checkout_one;
+        }
+    } else {
+        msq = shm_queues->msq_ss_checkouts;
+    }
+}
+
+void stand_in_the_queue(Client client, int msq_id)
+{
+    if (msq_id == -1)
+        return;
+
+    ClientMessage msg;
+    msg.message_type = 1;
+    msg.client = client;
+
+    if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
+        perror(_("Msgsnd error\n"));
+        return;
+    }
+}
+
+void choose_ss_checkout()
+{
+    sprintf(logger_message,
+        _("(%d) I'll get in line for checkout. My number is %d.\n"),
+        client.id, queue_length(msq));
+    save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
+
+    int waited = 0;
+    const int STEP = 10000 / shm_sim_settings->sim_speed;
+
+    while (waited < T) {
+        if (msgrcv(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), (long)client.id, IPC_NOWAIT) != -1) {
+            return;
+        }
+
+        usleep(STEP);
+        waited += STEP;
+    }
+    leave_the_queue(client.id, msq);
+
+    sprintf(logger_message, _("(%d) It's taking too long!\n"), client.id);
+    save_a_log(LOG_SIM_WARN, logger_message, shm_queues->msq_logger);
+
+    if (shm_checkouts->checkout[1].open == 1) {
+        msq = (queue_length(shm_queues->msq_checkout_one)
+                  <= queue_length(shm_queues->msq_checkout_two))
+            ? shm_queues->msq_checkout_one
+            : shm_queues->msq_checkout_two;
+    } else {
+        msq = shm_queues->msq_checkout_one;
+    }
+
+    stand_in_the_queue(client, msq);
+    choose_checkout();
+}
+
+void choose_checkout()
+{
+    sprintf(logger_message,
+        _("(%d) I'll get in line for self-service. My number is %d.\n"),
+        client.id,
+        queue_length(shm_queues->msq_ss_checkouts));
+    save_a_log(LOG_CLIENT, logger_message, shm_queues->msq_logger);
+
+    bool coin_flipped = false;
+    bool was_closed = (shm_checkouts->checkout[1].open == 0);
+
+    while (true) {
+        if (msgrcv(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), (long)client.id, IPC_NOWAIT) != -1) {
+            return;
+        }
+
+        if (was_closed && !coin_flipped && shm_checkouts->checkout[1].open == 1) {
+            if (rand() % 2 == 1)
+                break;
+            coin_flipped = true;
+        }
+
+        usleep(100000 / shm_sim_settings->sim_speed);
+    }
+
+    leave_the_queue(client.id, msq);
+
+    sprintf(logger_message,
+        _("(%d) Oh! The second checkout is open!\n"),
+        client.id);
+    save_a_log(LOG_SIM_WARN, logger_message, shm_queues->msq_logger);
+
+    msq = shm_queues->msq_checkout_two;
+    stand_in_the_queue(client, msq);
+}
+
+void leave_the_queue(pid_t client_id, int msq_id)
+{
+    if (msq_id == -1)
+        return;
+
+    ClientMessage msg;
+    ClientMessage buffer[MAX_CLIENTS];
+    int count = 0;
+
+    operation_wait(shm_semaphores->sem_checkouts);
+    while (msgrcv(msq_id, &msg, sizeof(msg) - sizeof(long), 0, IPC_NOWAIT) != -1) {
+        if (msg.client.id != client_id) {
+            buffer[count++] = msg;
+        }
+    }
+
+    for (int i = 0; i < count; i++) {
+        if (msgsnd(msq_id,
+                &buffer[i],
+                sizeof(buffer[i]) - sizeof(long),
+                0)
+            == -1) {
+            perror("leave_the_queue: msgsnd");
+        }
+    }
+    operation_signal(shm_semaphores->sem_checkouts);
+}

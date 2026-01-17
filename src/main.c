@@ -96,7 +96,6 @@ int main(int argc, char* argv[])
         sprintf(logger_message, _("Customers in the store: %d\t SSC queue: %d\t SSC open: %d\n"), shm_store_data->all_clients, queue_length(shm_queues->msq_ss_checkouts), shm_ss_checkouts->checkouts_opened);
         save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
 
-        // TODO; Zmień język
         sprintf(logger_message, _("Checkout one queue: %d\t Checkout two queue: %d\t Checkouts open: %d\n"), queue_length(shm_queues->msq_checkout_one), queue_length(shm_queues->msq_checkout_two), shm_checkouts->checkouts_opened);
         save_a_log(LOG_SIM_INFO, logger_message, shm_queues->msq_logger);
 

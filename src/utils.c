@@ -77,21 +77,6 @@ int queue_length(int msq_id)
     return buf.msg_qnum;
 };
 
-void stand_in_the_queue(Client client, int msq_id)
-{
-    if (msq_id == -1)
-        return;
-
-    ClientMessage msg;
-    msg.message_type = 1;
-    msg.client = client;
-
-    if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
-        perror(_("Msgsnd error\n"));
-        return;
-    }
-}
-
 void* shm_att(int* id, SectionsIPC section_type)
 {
     key_t key;
