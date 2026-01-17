@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <errno.h>
 #include <libintl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -11,21 +12,29 @@
 #include <time.h>
 #include <unistd.h>
 
+/** @brief Shared memory IDs */
 int shm_sim_settings_id;
 int shm_store_data_id;
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_ss_checkouts_id;
+
+/** @brief Shared memory pointers */
 SimSettings* shm_sim_settings;
 StoreData* shm_store_data;
 Semaphores* shm_semaphores;
 Queues* shm_queues;
 SelfServiceCheckouts* shm_ss_checkouts;
+
+/** @brief Checkout ID */
 int id;
+/** @brief Logger message buffers */
 char logger_message[480];
 char logger_message_buf[80];
 
+/** @brief Unblock signal handler */
 void unblock_handler(int sig);
+/** @brief Alarm signal handler */
 void sigalrm_handler(int sig);
 
 pid_t pids[MAX_SS_CHECKOUTS];
@@ -69,6 +78,7 @@ int main(int argc, char* argv[])
     exit(0);
 }
 
+/** @brief Serves a customer at self-service checkout */
 void serve_the_customer(int new_id)
 {
     signal(SIGALRM, SIG_DFL);
@@ -89,6 +99,9 @@ void serve_the_customer(int new_id)
         };
 
         if (msgrcv(shm_queues->msq_ss_checkouts, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
+            if (errno != EINTR) {
+                perror(_("Msgrcv error\n"));
+            }
             break;
         }
 
@@ -126,10 +139,13 @@ void serve_the_customer(int new_id)
             AgeVerificationRequest sreq;
             sreq.message_type = 1;
             sreq.client = msg.client;
-            msgsnd(shm_queues->msq_staff, &sreq, sizeof(sreq) - sizeof(long), 0);
+            if (msgsnd(shm_queues->msq_staff, &sreq, sizeof(sreq) - sizeof(long), 0) == -1) {
+                perror(_("Msgsnd error\n"));
+            }
 
             AgeVerificationResponse sresp;
             if (msgrcv(shm_queues->msq_staff, &sresp, sizeof(sresp) - sizeof(long), (long)msg.client.id, 0) == -1) {
+                perror(_("Msgrcv error\n"));
                 approved = false;
             } else {
                 approved = sresp.approved;
@@ -144,7 +160,9 @@ void serve_the_customer(int new_id)
             ClientResponse cresp;
             cresp.message_type = msg.client.id;
             cresp.approved = 0;
-            msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0);
+            if (msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0) == -1) {
+                perror(_("Msgsnd error\n"));
+            }
         } else {
             float cena = 0.0;
             for (int i = 0; i < msg.client.number_of_products; i++) {
@@ -169,12 +187,16 @@ void serve_the_customer(int new_id)
             sprintf(buf_tot, _("Total: %.2f PLN\n"), cena);
             strncat(receipt.message, buf_tot, sizeof(receipt.message) - strlen(receipt.message) - 1);
 
-            msgsnd(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), 0);
+            if (msgsnd(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), 0) == -1) {
+                perror(_("Msgsnd error\n"));
+            }
 
             ClientResponse cresp;
             cresp.message_type = msg.client.id;
             cresp.approved = 1;
-            msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0);
+            if (msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0) == -1) {
+                perror(_("Msgsnd error\n"));
+            }
         }
 
         operation_wait(shm_semaphores->sem_checkouts);
@@ -183,6 +205,7 @@ void serve_the_customer(int new_id)
     }
 };
 
+/** @brief Initializes shared memory implementation */
 void shm_init()
 {
     shm_queues = (Queues*)shm_att(&shm_queues_id, QUEUES);
@@ -192,6 +215,7 @@ void shm_init()
     shm_ss_checkouts = (SelfServiceCheckouts*)shm_att(&shm_ss_checkouts_id, SS_CHECKOUTS);
 };
 
+/** @brief Closes shared memory implementation */
 void shm_close()
 {
     shm_det(shm_queues);
@@ -201,6 +225,7 @@ void shm_close()
     shm_det(shm_ss_checkouts);
 };
 
+/** @brief Checks if checkout is blocked */
 void am_i_blcked()
 {
     if (rand() % 100 < 5) {
@@ -219,7 +244,9 @@ void am_i_blcked()
         block_msg.checkout_id = id;
         strcpy(block_msg.reason, reason);
 
-        msgsnd(shm_queues->msq_ss_staff, &block_msg, sizeof(block_msg) - sizeof(long), 0);
+        if (msgsnd(shm_queues->msq_ss_staff, &block_msg, sizeof(block_msg) - sizeof(long), 0) == -1) {
+            perror(_("Msgsnd error\n"));
+        }
 
         sprintf(logger_message_buf, _("Staff assistance required: %s\n"), reason);
         strcat(logger_message, logger_message_buf);
@@ -231,14 +258,18 @@ void am_i_blcked()
     }
 }
 
+/** @brief Unblock handler */
 void unblock_handler(int sig)
 {
     shm_ss_checkouts->checkout[id].blocked = 0;
 }
 
+/** @brief SIGALRM handler */
 void sigalrm_handler(int sig)
 {
     for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
-        kill(pids[i], SIGTERM);
+        if (kill(pids[i], SIGTERM) == -1) {
+            perror(_("Kill error\n"));
+        }
     }
 }

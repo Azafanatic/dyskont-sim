@@ -12,28 +12,43 @@
 #include <time.h>
 #include <unistd.h>
 
+/** @brief Shared memory IDs */
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_sim_settings_id;
+
+/** @brief Shared memory pointers */
 Semaphores* shm_semaphores;
 Queues* shm_queues;
 SimSettings* shm_sim_settings;
+
+/** @brief Log message */
 LogMessage msg;
 
+/** @brief Log file path */
 char path[64];
+/** @brief Log file descriptor */
 int file;
 
+/** @brief Stop simulation flag */
 volatile sig_atomic_t stop_sim;
 
+/** @brief Initializes shared memory */
 void shm_init();
+/** @brief Closes shared memory */
 void shm_close();
+/** @brief SIGINT handler */
 void sigint_handler(int sig);
+/** @brief Logger function */
 void logger();
 
+/** @brief Main function for logger */
 int main()
 {
     init_i18n();
-    mkdir("logs", 0755);
+    if (mkdir("logs", 0755) == -1) {
+        perror(_("Mkdir error\n"));
+    }
     stop_sim = 0;
     signal(SIGINT, sigint_handler);
 
@@ -43,6 +58,7 @@ int main()
 
     file = open(path, O_WRONLY | O_CREAT, 0644);
     if (file == -1) {
+        perror(_("Open error\n"));
         exit(1);
     }
 
@@ -50,13 +66,16 @@ int main()
         logger();
     }
 
-    close(file);
+    if (close(file) == -1) {
+        perror(_("Close error\n"));
+    }
 
     shm_close();
 
     exit(0);
 }
 
+/** @brief Initializes shared memory implementation */
 void shm_init()
 {
     shm_queues = (Queues*)shm_att(&shm_queues_id, QUEUES);
@@ -64,6 +83,7 @@ void shm_init()
     shm_sim_settings = (SimSettings*)shm_att(&shm_sim_settings_id, SIM_SETTINGS);
 };
 
+/** @brief Closes shared memory implementation */
 void shm_close()
 {
     shm_det(shm_queues);
@@ -71,15 +91,20 @@ void shm_close()
     shm_det(shm_sim_settings);
 };
 
+/** @brief SIGINT handler implementation */
 void sigint_handler(int sig)
 {
     if (sig == SIGINT)
         stop_sim = 1;
 }
 
+/** @brief Logger function implementation */
 void logger()
 {
     if (msgrcv(shm_queues->msq_logger, &msg, sizeof(msg) - sizeof(long), 0, 0) == -1) {
+        if (errno != EINTR) {
+            perror(_("Msgrcv error\n"));
+        }
         return;
     }
 
@@ -129,5 +154,7 @@ void logger()
 
     char message_buf[1124];
     sprintf(message_buf, "%s%s", prefix, msg.message);
-    write(file, message_buf, strlen(message_buf));
+    if (write(file, message_buf, strlen(message_buf)) == -1) {
+        perror(_("Write error\n"));
+    }
 }

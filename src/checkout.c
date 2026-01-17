@@ -12,21 +12,29 @@
 #include <time.h>
 #include <unistd.h>
 
+/** @brief Shared memory IDs */
 int shm_sim_settings_id;
 int shm_store_data_id;
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_checkouts_id;
+
+/** @brief Shared memory pointers */
 SimSettings* shm_sim_settings;
 StoreData* shm_store_data;
 Semaphores* shm_semaphores;
 Queues* shm_queues;
 Checkouts* shm_checkouts;
+
+/** @brief Checkout ID */
 int id;
+/** @brief Logger message buffers */
 char logger_message[480];
 char logger_message_buf[80];
 
+/** @brief Process IDs */
 pid_t pids[MAX_SS_CHECKOUTS];
+/** @brief Clients left counter */
 int clients_left;
 
 void sigusr_handler(int sig);
@@ -70,6 +78,7 @@ int main(int argc, char* argv[])
     exit(0);
 }
 
+/** @brief Serves a customer at the checkout. */
 void serve_the_customer(int new_id)
 {
     id = new_id;
@@ -97,6 +106,7 @@ void serve_the_customer(int new_id)
                     usleep(500000 / shm_sim_settings->sim_speed);
                     continue;
                 } else {
+                    perror(_("Msgrcv error\n"));
                     break;
                 }
             }
@@ -106,6 +116,7 @@ void serve_the_customer(int new_id)
                     usleep(500000 / shm_sim_settings->sim_speed);
                     continue;
                 } else {
+                    perror(_("Msgrcv error\n"));
                     break;
                 }
             }
@@ -155,7 +166,9 @@ void serve_the_customer(int new_id)
             ClientResponse cresp;
             cresp.message_type = msg.client.id;
             cresp.approved = 0;
-            msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0);
+            if (msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0) == -1) {
+                perror(_("Msgsnd error\n"));
+            }
         } else {
             float cena = 0.0;
             for (int i = 0; i < msg.client.number_of_products; i++) {
@@ -180,12 +193,16 @@ void serve_the_customer(int new_id)
             sprintf(buf_tot, _("Total: %.2f PLN\n"), cena);
             strncat(receipt.message, buf_tot, sizeof(receipt.message) - strlen(receipt.message) - 1);
 
-            msgsnd(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), 0);
+            if (msgsnd(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), 0) == -1) {
+                perror(_("Msgsnd error\n"));
+            }
 
             ClientResponse cresp;
             cresp.message_type = msg.client.id;
             cresp.approved = 1;
-            msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0);
+            if (msgsnd(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), 0) == -1) {
+                perror(_("Msgsnd error\n"));
+            }
         }
 
         operation_wait(shm_semaphores->sem_checkouts);
@@ -202,6 +219,7 @@ void serve_the_customer(int new_id)
     exit(0);
 };
 
+/** @brief Initializes shared memory. */
 void shm_init()
 {
     shm_queues = (Queues*)shm_att(&shm_queues_id, QUEUES);
@@ -211,6 +229,7 @@ void shm_init()
     shm_checkouts = (Checkouts*)shm_att(&shm_checkouts_id, CHECKOUTS);
 };
 
+/** @brief Closes shared memory. */
 void shm_close()
 {
     shm_det(shm_queues);
@@ -220,6 +239,7 @@ void shm_close()
     shm_det(shm_checkouts);
 };
 
+/** @brief Handles SIGUSR signals. */
 void sigusr_handler(int sig)
 {
     if (sig == SIGUSR1) {
@@ -234,9 +254,12 @@ void sigusr_handler(int sig)
     }
 }
 
+/** @brief Handles SIGALRM signal. */
 void sigalrm_handler(int sig)
 {
     for (int i = 0; i < MAX_CHECKOUTS; i++) {
-        kill(pids[i], SIGTERM);
+        if (kill(pids[i], SIGTERM) == -1) {
+            perror(_("Kill error\n"));
+        }
     }
 }

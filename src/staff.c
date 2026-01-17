@@ -1,19 +1,25 @@
 #include "utils.h"
+#include <errno.h>
 #include <signal.h>
 #include <stdio.h>
 #include <sys/msg.h>
 #include <unistd.h>
 
+/** @brief Shared memory IDs */
 int shm_sim_settings_id;
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_ss_checkouts_id;
+
+/** @brief Shared memory pointers */
 SimSettings* shm_sim_settings;
 Semaphores* shm_semaphores;
 Queues* shm_queues;
 SelfServiceCheckouts* shm_ss_checkouts;
 
+/** @brief Initializes shared memory */
 void shm_init();
+/** @brief Closes shared memory */
 void shm_close();
 
 int main(int argc, char* argv[])
@@ -28,14 +34,20 @@ int main(int argc, char* argv[])
             snprintf(msgbuf, sizeof(msgbuf), _("Self service checkout %d blocked: %s\n"), block_msg.checkout_id, block_msg.reason);
             save_a_log(LOG_STAFF, msgbuf, shm_queues->msq_logger);
 
-            kill(shm_ss_checkouts->checkout[block_msg.checkout_id].pid, SIGUSR1);
+            if (kill(shm_ss_checkouts->checkout[block_msg.checkout_id].pid, SIGUSR1) == -1) {
+                perror(_("Kill error\n"));
+            }
 
             snprintf(msgbuf, sizeof(msgbuf), _("Self service checkout %d unblocked.\n"), block_msg.checkout_id);
             save_a_log(LOG_STAFF, msgbuf, shm_queues->msq_logger);
         }
 
         AgeVerificationRequest req;
-        if (msgrcv(shm_queues->msq_staff, &req, sizeof(req) - sizeof(long), 1, IPC_NOWAIT) != -1) {
+        if (msgrcv(shm_queues->msq_staff, &req, sizeof(req) - sizeof(long), 1, IPC_NOWAIT) == -1) {
+            if (errno != ENOMSG && errno != EINTR) {
+                perror(_("Msgrcv error\n"));
+            }
+        } else {
             char msgbuf[240];
             snprintf(msgbuf, sizeof(msgbuf), _("Verifying client %d... They are %d yo.\n"), req.client.id, req.client.age);
             save_a_log(LOG_STAFF, msgbuf, shm_queues->msq_logger);
@@ -59,6 +71,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+/** @brief Initializes shared memory implementation */
 void shm_init()
 {
     shm_queues = (Queues*)shm_att(&shm_queues_id, QUEUES);
@@ -67,6 +80,7 @@ void shm_init()
     shm_ss_checkouts = (SelfServiceCheckouts*)shm_att(&shm_ss_checkouts_id, SS_CHECKOUTS);
 }
 
+/** @brief Closes shared memory implementation */
 void shm_close()
 {
     shm_det(shm_queues);

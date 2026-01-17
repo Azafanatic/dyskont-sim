@@ -1,0 +1,38 @@
+digraph "main"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="LR";
+  Node1 [id="Node000001",label="main",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
+  Node1 -> Node2 [id="edge1_Node000001_Node000002",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="do_work",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$manager_8c.html#a53de10de8ca6fdcb1c13505a6b97d5f9",tooltip="Performs manager work."];
+  Node2 -> Node3 [id="edge2_Node000002_Node000003",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="close_all_checkouts",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$manager_8c.html#a4577e2a5000de7f8f3ff4de497cbad26",tooltip="Closes all checkouts."];
+  Node3 -> Node4 [id="edge3_Node000003_Node000004",color="steelblue1",style="solid",tooltip=" "];
+  Node4 [id="Node000004",label="operation_signal",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a25c83609ccc2e50ebebae04f40068617",tooltip="Signals semaphore."];
+  Node3 -> Node5 [id="edge4_Node000003_Node000005",color="steelblue1",style="solid",tooltip=" "];
+  Node5 [id="Node000005",label="operation_wait",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a337db545fd3919ecc5a5e8b22c60a2f4",tooltip="Waits on semaphore."];
+  Node3 -> Node6 [id="edge5_Node000003_Node000006",color="steelblue1",style="solid",tooltip=" "];
+  Node6 [id="Node000006",label="save_a_log",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#aee92e4f9420367f9fc2365286998b4d8",tooltip="Saves a log message."];
+  Node2 -> Node7 [id="edge6_Node000002_Node000007",color="steelblue1",style="solid",tooltip=" "];
+  Node7 [id="Node000007",label="menage_checkouts",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$manager_8c.html#a1c3b7f6136d512e0caa3f3c2f056d725",tooltip="Manages checkouts."];
+  Node7 -> Node4 [id="edge7_Node000007_Node000004",color="steelblue1",style="solid",tooltip=" "];
+  Node7 -> Node5 [id="edge8_Node000007_Node000005",color="steelblue1",style="solid",tooltip=" "];
+  Node7 -> Node8 [id="edge9_Node000007_Node000008",color="steelblue1",style="solid",tooltip=" "];
+  Node8 [id="Node000008",label="queue_length",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a34519cc3f9a8fd5d63003f0cd38c0750",tooltip="Gets queue length."];
+  Node2 -> Node4 [id="edge10_Node000002_Node000004",color="steelblue1",style="solid",tooltip=" "];
+  Node2 -> Node5 [id="edge11_Node000002_Node000005",color="steelblue1",style="solid",tooltip=" "];
+  Node2 -> Node6 [id="edge12_Node000002_Node000006",color="steelblue1",style="solid",tooltip=" "];
+  Node1 -> Node9 [id="edge13_Node000001_Node000009",color="steelblue1",style="solid",tooltip=" "];
+  Node9 [id="Node000009",label="init_i18n",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#ab4e1de2c5a9b1d119c9a27ecd4326d9b",tooltip="Initializes internationalization."];
+  Node1 -> Node10 [id="edge14_Node000001_Node000010",color="steelblue1",style="solid",tooltip=" "];
+  Node10 [id="Node000010",label="shm_close",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$manager_8c.html#ad17956c96cd99e9cb46c8f2874384501",tooltip="Closes shared memory implementation."];
+  Node10 -> Node11 [id="edge15_Node000010_Node000011",color="steelblue1",style="solid",tooltip=" "];
+  Node11 [id="Node000011",label="shm_det",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#acb8f14b677c4e9fd049519f0ccf8f88e",tooltip="Detaches shared memory."];
+  Node1 -> Node12 [id="edge16_Node000001_Node000012",color="steelblue1",style="solid",tooltip=" "];
+  Node12 [id="Node000012",label="shm_init",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$manager_8c.html#a8783f1dc5cba51d08d91b280b1e012a8",tooltip="Initializes shared memory implementation."];
+  Node12 -> Node13 [id="edge17_Node000012_Node000013",color="steelblue1",style="solid",tooltip=" "];
+  Node13 [id="Node000013",label="shm_att",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a9e5c704d1674b88dcfca7733bedb53cb",tooltip="Attaches shared memory."];
+}

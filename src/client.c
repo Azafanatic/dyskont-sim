@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <errno.h>
 #include <math.h>
 #include <signal.h>
 #include <stdio.h>
@@ -8,18 +9,24 @@
 #include <time.h>
 #include <unistd.h>
 
+/** @brief Timeout constant */
 #define T 60.0 * 1000000
 
+/** @brief Client process IDs */
 pid_t pids[MAX_CLIENTS];
 
+/** @brief Stop simulation flag */
 volatile sig_atomic_t stop_sim = 0;
 
+/** @brief Shared memory IDs */
 int shm_sim_settings_id;
 int shm_store_data_id;
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_ss_checkouts_id;
 int shm_checkouts_id;
+
+/** @brief Shared memory pointers */
 SimSettings* shm_sim_settings;
 StoreData* shm_store_data;
 Semaphores* shm_semaphores;
@@ -106,7 +113,9 @@ int main(int argc, char* argv[])
 
         for (int i = 0; i < active; i++) {
             pid_t ret = waitpid(pids[i], NULL, WNOHANG);
-            if (ret > 0) {
+            if (ret == -1) {
+                perror(_("Waitpid error\n"));
+            } else if (ret > 0) {
                 pids[i] = pids[active - 1];
                 active--;
                 i--;
@@ -140,6 +149,7 @@ int main(int argc, char* argv[])
     exit(0);
 }
 
+/** @brief Performs shopping for a client */
 void do_some_shopping()
 {
     client.number_of_products = MIN_PRODUCTS + rand() % (MAX_PRODUCTS - MIN_PRODUCTS + 1);
@@ -170,7 +180,9 @@ void do_some_shopping()
 
     if (cresp.approved) {
         ReceiptMessage receipt;
-        if (msgrcv(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), (long)client.id, 0) != -1) {
+        if (msgrcv(shm_queues->msq_receipts, &receipt, sizeof(receipt) - sizeof(long), (long)client.id, 0) == -1) {
+            perror(_("Msgrcv error\n"));
+        } else {
             save_a_log(LOG_CLIENT, receipt.message, shm_queues->msq_logger);
         }
         sprintf(logger_message, _("(%d): Goodbye!\n"), getpid());
@@ -183,6 +195,7 @@ void do_some_shopping()
     exit(0);
 };
 
+/** @brief Initializes shared memory implementation */
 void shm_init()
 {
     shm_queues = (Queues*)shm_att(&shm_queues_id, QUEUES);
@@ -193,6 +206,7 @@ void shm_init()
     shm_checkouts = (Checkouts*)shm_att(&shm_checkouts_id, CHECKOUTS);
 };
 
+/** @brief Closes shared memory implementation */
 void shm_close()
 {
     shm_det(shm_queues);
@@ -203,6 +217,7 @@ void shm_close()
     shm_det(shm_checkouts);
 };
 
+/** @brief Picks a queue for the client */
 void pick_a_queue()
 {
     if (rand() % 100 < 5) {
@@ -216,6 +231,7 @@ void pick_a_queue()
     }
 }
 
+/** @brief Stands in the queue */
 void stand_in_the_queue(Client client, int msq_id)
 {
     if (msq_id == -1)
@@ -235,6 +251,7 @@ void stand_in_the_queue(Client client, int msq_id)
     }
 }
 
+/** @brief Chooses self-service checkout */
 void choose_ss_checkout()
 {
     sprintf(logger_message, _("(%d) I'll get in line for checkout. My number is %d.\n"), client.id, queue_length(msq));
@@ -244,7 +261,11 @@ void choose_ss_checkout()
     const int STEP = 10000 / shm_sim_settings->sim_speed;
 
     while (waited < T) {
-        if (msgrcv(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), (long)client.id, IPC_NOWAIT) != -1) {
+        if (msgrcv(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), (long)client.id, IPC_NOWAIT) == -1) {
+            if (errno != EINTR && errno != ENOMSG) {
+                perror(_("Msgrcv error\n"));
+            }
+        } else {
             return;
         }
 
@@ -269,6 +290,7 @@ void choose_ss_checkout()
     choose_checkout();
 }
 
+/** @brief Chooses checkout */
 void choose_checkout()
 {
     sprintf(logger_message, _("(%d) I'll get in line for self-service. My number is %d.\n"), client.id, queue_length(shm_queues->msq_ss_checkouts));
@@ -278,7 +300,11 @@ void choose_checkout()
     bool was_closed = (shm_checkouts->checkout[1].open == 0);
 
     while (true) {
-        if (msgrcv(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), (long)client.id, IPC_NOWAIT) != -1) {
+        if (msgrcv(shm_queues->msq_client_resp, &cresp, sizeof(cresp) - sizeof(long), (long)client.id, IPC_NOWAIT) == -1) {
+            if (errno != EINTR && errno != ENOMSG) {
+                perror(_("Msgrcv error\n"));
+            }
+        } else {
             return;
         }
 
@@ -291,7 +317,7 @@ void choose_checkout()
         usleep(100000 / shm_sim_settings->sim_speed);
     }
 
-    leave_the_queue(client.id, msq);
+    leave_the_queue(client.id, shm_queues->msq_ss_checkouts);
 
     sprintf(logger_message, _("(%d) Oh! The second checkout has opened!\n"), client.id);
     save_a_log(LOG_SIM_WARN, logger_message, shm_queues->msq_logger);
@@ -300,6 +326,7 @@ void choose_checkout()
     stand_in_the_queue(client, msq);
 }
 
+/** @brief Leaves the queue */
 void leave_the_queue(pid_t client_id, int msq_id)
 {
     if (msq_id == -1)
@@ -315,6 +342,9 @@ void leave_the_queue(pid_t client_id, int msq_id)
             buffer[count++] = msg;
         }
     }
+    if (errno != ENOMSG && errno != EINTR) {
+        perror(_("Msgrcv error\n"));
+    }
 
     for (int i = 0; i < count; i++) {
         if (msgsnd(msq_id,
@@ -328,10 +358,14 @@ void leave_the_queue(pid_t client_id, int msq_id)
     operation_signal(shm_semaphores->sem_checkouts);
 }
 
+/** @brief SIGALRM handler */
 void sigalrm_handler(int sig)
 {
     for (int i = 0; i < active; i++) {
-        if (pids[i] != 0)
-            kill(pids[i], SIGTERM);
+        if (pids[i] != 0) {
+            if (kill(pids[i], SIGTERM) == -1) {
+                perror(_("Kill error\n"));
+            }
+        }
     }
 }

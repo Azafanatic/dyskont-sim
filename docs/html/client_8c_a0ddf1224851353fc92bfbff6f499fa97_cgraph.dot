@@ -1,0 +1,52 @@
+digraph "main"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="LR";
+  Node1 [id="Node000001",label="main",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
+  Node1 -> Node2 [id="edge1_Node000001_Node000002",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="do_some_shopping",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$client_8c.html#a5929efe29a7be227696f21d994024fdf",tooltip="Performs shopping for a client."];
+  Node2 -> Node3 [id="edge2_Node000002_Node000003",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="choose_checkout",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$client_8c.html#a168b5e27e762ad3d57fb74f41d4852b5",tooltip="Chooses checkout."];
+  Node3 -> Node4 [id="edge3_Node000003_Node000004",color="steelblue1",style="solid",tooltip=" "];
+  Node4 [id="Node000004",label="leave_the_queue",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$client_8c.html#a0f3c5ec391d908e64852b8238d140f32",tooltip="Leaves the queue."];
+  Node4 -> Node5 [id="edge4_Node000004_Node000005",color="steelblue1",style="solid",tooltip=" "];
+  Node5 [id="Node000005",label="operation_signal",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a25c83609ccc2e50ebebae04f40068617",tooltip="Signals semaphore."];
+  Node4 -> Node6 [id="edge5_Node000004_Node000006",color="steelblue1",style="solid",tooltip=" "];
+  Node6 [id="Node000006",label="operation_wait",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a337db545fd3919ecc5a5e8b22c60a2f4",tooltip="Waits on semaphore."];
+  Node3 -> Node7 [id="edge6_Node000003_Node000007",color="steelblue1",style="solid",tooltip=" "];
+  Node7 [id="Node000007",label="queue_length",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a34519cc3f9a8fd5d63003f0cd38c0750",tooltip="Gets queue length."];
+  Node3 -> Node8 [id="edge7_Node000003_Node000008",color="steelblue1",style="solid",tooltip=" "];
+  Node8 [id="Node000008",label="save_a_log",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#aee92e4f9420367f9fc2365286998b4d8",tooltip="Saves a log message."];
+  Node3 -> Node9 [id="edge8_Node000003_Node000009",color="steelblue1",style="solid",tooltip=" "];
+  Node9 [id="Node000009",label="stand_in_the_queue",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$client_8c.html#aa8667be8ed8b7081b4960883f5195272",tooltip="Stands in the queue."];
+  Node9 -> Node7 [id="edge9_Node000009_Node000007",color="steelblue1",style="solid",tooltip=" "];
+  Node2 -> Node10 [id="edge10_Node000002_Node000010",color="steelblue1",style="solid",tooltip=" "];
+  Node10 [id="Node000010",label="choose_ss_checkout",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$client_8c.html#a2020e7180887d50cb19eb2345477e89c",tooltip="Chooses self-service checkout."];
+  Node10 -> Node3 [id="edge11_Node000010_Node000003",color="steelblue1",style="solid",tooltip=" "];
+  Node10 -> Node4 [id="edge12_Node000010_Node000004",color="steelblue1",style="solid",tooltip=" "];
+  Node10 -> Node7 [id="edge13_Node000010_Node000007",color="steelblue1",style="solid",tooltip=" "];
+  Node10 -> Node8 [id="edge14_Node000010_Node000008",color="steelblue1",style="solid",tooltip=" "];
+  Node10 -> Node9 [id="edge15_Node000010_Node000009",color="steelblue1",style="solid",tooltip=" "];
+  Node2 -> Node11 [id="edge16_Node000002_Node000011",color="steelblue1",style="solid",tooltip=" "];
+  Node11 [id="Node000011",label="pick_a_queue",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$client_8c.html#aa2fe7858576ae7651900762349a5c11c",tooltip="Picks a queue for the client."];
+  Node11 -> Node7 [id="edge17_Node000011_Node000007",color="steelblue1",style="solid",tooltip=" "];
+  Node2 -> Node8 [id="edge18_Node000002_Node000008",color="steelblue1",style="solid",tooltip=" "];
+  Node2 -> Node9 [id="edge19_Node000002_Node000009",color="steelblue1",style="solid",tooltip=" "];
+  Node1 -> Node12 [id="edge20_Node000001_Node000012",color="steelblue1",style="solid",tooltip=" "];
+  Node12 [id="Node000012",label="init_i18n",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#ab4e1de2c5a9b1d119c9a27ecd4326d9b",tooltip="Initializes internationalization."];
+  Node1 -> Node5 [id="edge21_Node000001_Node000005",color="steelblue1",style="solid",tooltip=" "];
+  Node1 -> Node6 [id="edge22_Node000001_Node000006",color="steelblue1",style="solid",tooltip=" "];
+  Node1 -> Node13 [id="edge23_Node000001_Node000013",color="steelblue1",style="solid",tooltip=" "];
+  Node13 [id="Node000013",label="shm_close",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$client_8c.html#ad17956c96cd99e9cb46c8f2874384501",tooltip="Closes shared memory implementation."];
+  Node13 -> Node14 [id="edge24_Node000013_Node000014",color="steelblue1",style="solid",tooltip=" "];
+  Node14 [id="Node000014",label="shm_det",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#acb8f14b677c4e9fd049519f0ccf8f88e",tooltip="Detaches shared memory."];
+  Node1 -> Node15 [id="edge25_Node000001_Node000015",color="steelblue1",style="solid",tooltip=" "];
+  Node15 [id="Node000015",label="shm_init",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$client_8c.html#a8783f1dc5cba51d08d91b280b1e012a8",tooltip="Initializes shared memory implementation."];
+  Node15 -> Node16 [id="edge26_Node000015_Node000016",color="steelblue1",style="solid",tooltip=" "];
+  Node16 [id="Node000016",label="shm_att",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$utils_8c.html#a9e5c704d1674b88dcfca7733bedb53cb",tooltip="Attaches shared memory."];
+  Node1 -> Node17 [id="edge27_Node000001_Node000017",color="steelblue1",style="solid",tooltip=" "];
+  Node17 [id="Node000017",label="sigalrm_handler",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$checkout_8c.html#adad73be642889ec5a245216570fd44b9",tooltip="Handles SIGALRM signal."];
+}

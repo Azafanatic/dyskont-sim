@@ -1,29 +1,40 @@
 #include "utils.h"
+#include <errno.h>
 #include <fcntl.h>
 #include <math.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
+/** @brief Constant K */
 #define K 10.0
 
+/** @brief End time */
 time_t time_end;
+
+/** @brief Shared memory IDs */
 int shm_sim_settings_id;
 int shm_store_data_id;
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_ss_checkouts_id;
 int shm_checkouts_id;
+
+/** @brief Shared memory pointers */
 SimSettings* shm_sim_settings;
 StoreData* shm_store_data;
 Semaphores* shm_semaphores;
 Queues* shm_queues;
 SelfServiceCheckouts* shm_ss_checkouts;
 Checkouts* shm_checkouts;
+
+/** @brief Active flag */
 int active;
 
+/** @brief Logger message buffer */
 char logger_message[320];
 
 bool status[MAX_SS_CHECKOUTS] = { false };
@@ -46,6 +57,7 @@ int main(int argc, char* argv[])
     exit(0);
 }
 
+/** @brief Performs manager work */
 void do_work()
 {
     time_end = time(NULL) + (time_t)ceil(shm_sim_settings->sim_length / (double)shm_sim_settings->sim_speed);
@@ -70,7 +82,9 @@ void do_work()
         operation_wait(shm_semaphores->sem_store_data);
         shm_store_data->open = false;
         operation_signal(shm_semaphores->sem_store_data);
-        kill(getppid(), SIGALRM);
+        if (kill(getppid(), SIGALRM) == -1) {
+            perror(_("Kill error\n"));
+        }
         close_all_checkouts();
         while (true) {
             if (shm_store_data->all_clients <= 0) {
@@ -90,8 +104,12 @@ void do_work()
         for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
             shm_ss_checkouts->checkout[i].open = (i < 3) ? 1 : 0;
         }
-        kill(shm_checkouts->checkout[0].pid, SIGUSR1);
-        kill(shm_checkouts->checkout[1].pid, SIGUSR1);
+        if (kill(shm_checkouts->checkout[0].pid, SIGUSR1) == -1) {
+            perror(_("Kill error\n"));
+        }
+        if (kill(shm_checkouts->checkout[1].pid, SIGUSR1) == -1) {
+            perror(_("Kill error\n"));
+        }
         shm_checkouts->checkouts_opened = 2;
         shm_ss_checkouts->checkouts_opened = 3;
         operation_signal(shm_semaphores->sem_checkouts);
@@ -103,7 +121,9 @@ void do_work()
 
                 usleep(11000000 / shm_sim_settings->sim_speed);
 
-                kill(getppid(), SIGINT);
+                if (kill(getppid(), SIGINT) == -1) {
+                    perror(_("Kill error\n"));
+                }
                 exit(0);
             }
             usleep(10.0 * 1000000 / shm_sim_settings->sim_speed);
@@ -111,6 +131,7 @@ void do_work()
     }
 };
 
+/** @brief Manages checkouts */
 void menage_checkouts()
 {
     bool prev_open_checkout[MAX_CHECKOUTS + MAX_SS_CHECKOUTS];
@@ -156,10 +177,14 @@ void menage_checkouts()
         if (prev_open_checkout[i] == open_checkout[i])
             continue;
         if (open_checkout[i]) {
-            kill(shm_checkouts->checkout[i - MAX_SS_CHECKOUTS].pid, SIGUSR1);
+            if (kill(shm_checkouts->checkout[i - MAX_SS_CHECKOUTS].pid, SIGUSR1) == -1) {
+                perror(_("Kill error\n"));
+            }
         } else {
             if (time(NULL) >= shm_checkouts->checkout[i - MAX_SS_CHECKOUTS].last_client + 30. / shm_sim_settings->sim_speed)
-                kill(shm_checkouts->checkout[i - MAX_SS_CHECKOUTS].pid, SIGUSR2);
+                if (kill(shm_checkouts->checkout[i - MAX_SS_CHECKOUTS].pid, SIGUSR2) == -1) {
+                    perror(_("Kill error\n"));
+                }
         }
     }
 
@@ -180,6 +205,7 @@ void menage_checkouts()
     operation_signal(shm_semaphores->sem_checkouts);
 };
 
+/** @brief Initializes shared memory implementation */
 void shm_init()
 {
     shm_queues = (Queues*)shm_att(&shm_queues_id, QUEUES);
@@ -190,6 +216,7 @@ void shm_init()
     shm_checkouts = (Checkouts*)shm_att(&shm_checkouts_id, CHECKOUTS);
 };
 
+/** @brief Closes shared memory implementation */
 void shm_close()
 {
     shm_det(shm_queues);
@@ -200,6 +227,7 @@ void shm_close()
     shm_det(shm_checkouts);
 };
 
+/** @brief Closes all checkouts */
 void close_all_checkouts()
 {
     save_a_log(LOG_MANAGER, _("Closing all checkouts...\n"), shm_queues->msq_logger);
@@ -207,8 +235,12 @@ void close_all_checkouts()
     for (int i = 0; i < MAX_SS_CHECKOUTS; i++) {
         shm_ss_checkouts->checkout[i].open = 0;
     }
-    kill(shm_checkouts->checkout[0].pid, SIGUSR2);
-    kill(shm_checkouts->checkout[1].pid, SIGUSR2);
+    if (kill(shm_checkouts->checkout[0].pid, SIGUSR2) == -1) {
+        perror(_("Kill error\n"));
+    }
+    if (kill(shm_checkouts->checkout[1].pid, SIGUSR2) == -1) {
+        perror(_("Kill error\n"));
+    }
     shm_checkouts->checkouts_opened = 0;
     shm_ss_checkouts->checkouts_opened = 0;
     operation_signal(shm_semaphores->sem_checkouts);

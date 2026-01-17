@@ -11,21 +11,30 @@
 #include <sys/sem.h>
 #include <unistd.h>
 
+/** @brief Creates a semaphore */
 int create_a_semaphore(int key)
 {
     int semID = semget(key, 1, 0666 | IPC_CREAT);
     if (semID == -1) {
+        perror(_("Semget error\n"));
         exit(EXIT_FAILURE);
     }
-    semctl(semID, 0, SETVAL, 1);
+    if (semctl(semID, 0, SETVAL, 1) == -1) {
+        perror(_("Semctl error\n"));
+        exit(EXIT_FAILURE);
+    }
     return semID;
 }
 
+/** @brief Deletes a semaphore */
 void del_a_semaphore(int semID)
 {
-    semctl(semID, 0, IPC_RMID);
+    if (semctl(semID, 0, IPC_RMID) == -1) {
+        perror(_("Semctl error\n"));
+    }
 }
 
+/** @brief Waits on semaphore */
 void operation_wait(int semID)
 {
     struct sembuf sb = { 0, -1, SEM_UNDO };
@@ -38,6 +47,7 @@ void operation_wait(int semID)
     }
 }
 
+/** @brief Signals semaphore */
 void operation_signal(int semID)
 {
     struct sembuf sb = { 0, 1, SEM_UNDO };
@@ -50,6 +60,7 @@ void operation_signal(int semID)
     }
 }
 
+/** @brief Saves a log message */
 void save_a_log(LogType log_type, const char* format, int msq_id)
 {
     if (msq_id == -1)
@@ -67,6 +78,7 @@ void save_a_log(LogType log_type, const char* format, int msq_id)
     }
 }
 
+/** @brief Gets queue length */
 int queue_length(int msq_id)
 {
     struct msqid_ds buf;
@@ -77,6 +89,7 @@ int queue_length(int msq_id)
     return buf.msg_qnum;
 };
 
+/** @brief Attaches shared memory */
 void* shm_att(int* id, SectionsIPC section_type)
 {
     key_t key;
@@ -126,6 +139,7 @@ void* shm_att(int* id, SectionsIPC section_type)
     return pointer;
 };
 
+/** @brief Creates shared memory */
 void* shm_create(int* id, SectionsIPC section_type)
 {
     key_t key;
@@ -175,25 +189,36 @@ void* shm_create(int* id, SectionsIPC section_type)
     return pointer;
 };
 
+/** @brief Destroys shared memory */
 void shm_destroy(int id, void* data)
 {
-    shmdt(data);
-    shmctl(id, IPC_RMID, NULL);
+    if (shmdt(data) == -1) {
+        perror(_("Shmdt error\n"));
+    }
+    if (shmctl(id, IPC_RMID, NULL) == -1) {
+        perror(_("Shmctl error\n"));
+    }
 };
 
+/** @brief Detaches shared memory */
 void shm_det(void* data)
 {
-    shmdt(data);
+    if (shmdt(data) == -1) {
+        perror(_("Shmdt error\n"));
+    }
 };
 
+/** @brief Initializes internationalization */
 void init_i18n()
 {
     setlocale(LC_ALL, "");
 
     char exe_path[PATH_MAX];
     ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
-    if (len == -1)
+    if (len == -1) {
+        perror(_("Readlink error\n"));
         return;
+    }
 
     exe_path[len] = '\0';
     char* dir = dirname(exe_path);

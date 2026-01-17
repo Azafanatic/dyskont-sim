@@ -10,12 +10,15 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+/** @brief Global shared memory IDs */
 int shm_sim_settings_id;
 int shm_store_data_id;
 int shm_semaphores_id;
 int shm_queues_id;
 int shm_ss_checkouts_id;
 int shm_checkouts_id;
+
+/** @brief Global shared memory pointers */
 SimSettings* shm_sim_settings;
 StoreData* shm_store_data;
 Semaphores* shm_semaphores;
@@ -23,22 +26,34 @@ Queues* shm_queues;
 SelfServiceCheckouts* shm_ss_checkouts;
 Checkouts* shm_checkouts;
 
+/** @brief Process IDs array */
 pid_t pids[MAIN_PROCESSES];
+/** @brief Logger message buffer */
 char logger_message[240];
 
+/** @brief Signal handler */
 void sig_handler(int sig);
 
+/** @brief Initializes shared memory */
 void shm_init();
+/** @brief Creates semaphores */
 void sem_create();
+/** @brief Creates message queues */
 void msq_create();
 
+/** @brief Closes shared memory */
 void shm_close();
+/** @brief Destroys semaphores */
 void sem_destroy();
+/** @brief Destroys message queues */
 void msq_destroy();
 
+/** @brief Parses integer argument */
 int parse_int(const char* arg, int min, int max, const char* name);
+/** @brief Sets simulation settings */
 void set_simulation_settings(int argc, char* argv[]);
 
+/** @brief Main function */
 int main(int argc, char* argv[])
 {
     init_i18n();
@@ -133,6 +148,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+/** @brief Signal handler implementation */
 void sig_handler(int sig)
 {
     operation_wait(shm_semaphores->sem_sim_settings);
@@ -145,6 +161,7 @@ void sig_handler(int sig)
     };
 };
 
+/** @brief Initializes shared memory implementation */
 void shm_init()
 {
     shm_queues = (Queues*)shm_create(&shm_queues_id, QUEUES);
@@ -155,6 +172,7 @@ void shm_init()
     shm_checkouts = (Checkouts*)shm_create(&shm_checkouts_id, CHECKOUTS);
 };
 
+/** @brief Closes shared memory implementation */
 void shm_close()
 {
     shm_destroy(shm_queues_id, shm_queues);
@@ -165,6 +183,7 @@ void shm_close()
     shm_destroy(shm_checkouts_id, shm_checkouts);
 };
 
+/** @brief Creates semaphores implementation */
 void sem_create()
 {
     shm_semaphores->sem_queues = create_a_semaphore(SEM_ID_QUEUES);
@@ -173,6 +192,7 @@ void sem_create()
     shm_semaphores->sem_sim_settings = create_a_semaphore(SEM_ID_SIM_SETTINGS);
 };
 
+/** @brief Destroys semaphores implementation */
 void sem_destroy()
 {
     del_a_semaphore(shm_semaphores->sem_queues);
@@ -181,39 +201,56 @@ void sem_destroy()
     del_a_semaphore(shm_semaphores->sem_checkouts);
 };
 
+/** @brief Creates message queues implementation */
 void msq_create()
 {
     int msq_logger_id = msgget(MSQ_ID_LOGGER, IPC_CREAT | 0600);
-    if (msq_logger_id == -1)
+    if (msq_logger_id == -1) {
+        perror(_("Msgget error\n"));
         exit(1);
+    }
 
     int msq_ss_checkouts_id = msgget(MSQ_ID_SS_CHECKOUTS, IPC_CREAT | 0600);
-    if (msq_ss_checkouts_id == -1)
+    if (msq_ss_checkouts_id == -1) {
+        perror(_("Msgget error\n"));
         exit(1);
+    }
 
     int msq_receipts_id = msgget(MSQ_ID_RECEIPTS, IPC_CREAT | 0600);
-    if (msq_receipts_id == -1)
+    if (msq_receipts_id == -1) {
+        perror(_("Msgget error\n"));
         exit(1);
+    }
 
     int msq_staff_id = msgget(MSQ_ID_STAFF, IPC_CREAT | 0600);
-    if (msq_staff_id == -1)
+    if (msq_staff_id == -1) {
+        perror(_("Msgget error\n"));
         exit(1);
+    }
 
     int msq_client_resp_id = msgget(MSQ_ID_CLIENT_RESP, IPC_CREAT | 0600);
-    if (msq_client_resp_id == -1)
+    if (msq_client_resp_id == -1) {
+        perror(_("Msgget error\n"));
         exit(1);
+    }
 
     int msq_ss_staff_id = msgget(MSQ_ID_SS_STAFF, IPC_CREAT | 0600);
-    if (msq_ss_staff_id == -1)
+    if (msq_ss_staff_id == -1) {
+        perror(_("Msgget error\n"));
         exit(1);
+    }
 
     int msq_checkout_one_id = msgget(MSQ_ID_CHECKOUT_ONE, IPC_CREAT | 0600);
-    if (msq_checkout_one_id == -1)
+    if (msq_checkout_one_id == -1) {
+        perror(_("Msgget error\n"));
         exit(1);
+    }
 
     int msq_checkout_two_id = msgget(MSQ_ID_CHECKOUT_TWO, IPC_CREAT | 0600);
-    if (msq_checkout_two_id == -1)
+    if (msq_checkout_two_id == -1) {
+        perror(_("Msgget error\n"));
         exit(1);
+    }
 
     operation_wait(shm_semaphores->sem_queues);
     shm_queues->msq_logger = msq_logger_id;
@@ -227,18 +264,36 @@ void msq_create()
     operation_signal(shm_semaphores->sem_queues);
 };
 
+/** @brief Destroys message queues implementation */
 void msq_destroy()
 {
-    msgctl(shm_queues->msq_logger, IPC_RMID, NULL);
-    msgctl(shm_queues->msq_ss_checkouts, IPC_RMID, NULL);
-    msgctl(shm_queues->msq_checkout_one, IPC_RMID, NULL);
-    msgctl(shm_queues->msq_checkout_two, IPC_RMID, NULL);
-    msgctl(shm_queues->msq_receipts, IPC_RMID, NULL);
-    msgctl(shm_queues->msq_staff, IPC_RMID, NULL);
-    msgctl(shm_queues->msq_client_resp, IPC_RMID, NULL);
-    msgctl(shm_queues->msq_ss_staff, IPC_RMID, NULL);
+    if (msgctl(shm_queues->msq_logger, IPC_RMID, NULL) == -1) {
+        perror(_("Msgctl error\n"));
+    }
+    if (msgctl(shm_queues->msq_ss_checkouts, IPC_RMID, NULL) == -1) {
+        perror(_("Msgctl error\n"));
+    }
+    if (msgctl(shm_queues->msq_checkout_one, IPC_RMID, NULL) == -1) {
+        perror(_("Msgctl error\n"));
+    }
+    if (msgctl(shm_queues->msq_checkout_two, IPC_RMID, NULL) == -1) {
+        perror(_("Msgctl error\n"));
+    }
+    if (msgctl(shm_queues->msq_receipts, IPC_RMID, NULL) == -1) {
+        perror(_("Msgctl error\n"));
+    }
+    if (msgctl(shm_queues->msq_staff, IPC_RMID, NULL) == -1) {
+        perror(_("Msgctl error\n"));
+    }
+    if (msgctl(shm_queues->msq_client_resp, IPC_RMID, NULL) == -1) {
+        perror(_("Msgctl error\n"));
+    }
+    if (msgctl(shm_queues->msq_ss_staff, IPC_RMID, NULL) == -1) {
+        perror(_("Msgctl error\n"));
+    }
 };
 
+/** @brief Parses integer argument implementation */
 int parse_int(const char* arg, int min, int max, const char* name)
 {
     char* endptr;
@@ -260,6 +315,7 @@ int parse_int(const char* arg, int min, int max, const char* name)
     return (int)value;
 }
 
+/** @brief Sets simulation settings implementation */
 void set_simulation_settings(int argc, char* argv[])
 {
     int evacuate = (rand() % 100 < 10) ? 1 : 0;

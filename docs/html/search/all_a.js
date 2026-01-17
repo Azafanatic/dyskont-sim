@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['last_5fclient_0',['last_client',['../structCheckout.html#a0f8e0a5bd6963be890e7070b94c377c0',1,'Checkout']]],
+  ['leave_5fthe_5fqueue_1',['leave_the_queue',['../client_8c.html#a0f3c5ec391d908e64852b8238d140f32',1,'client.c']]],
+  ['localedir_2',['LOCALEDIR',['../utils_8h.html#ab2cb7816c01560f1bab8b2dbd94be4c8',1,'utils.h']]],
+  ['log_5fcheckout_3',['LOG_CHECKOUT',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87caffa59f40332228d7a73579f3fc6208f8',1,'utils.h']]],
+  ['log_5fclient_4',['LOG_CLIENT',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87caf58c8ed1b25531636c757c93c3ab1421',1,'utils.h']]],
+  ['log_5fdef_5',['LOG_DEF',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87cac8fe150fbd322fa04348ca9fa6a6ae2f',1,'utils.h']]],
+  ['log_5fmanager_6',['LOG_MANAGER',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87caf1e682f92edcffe27a2bbbad9d9706cd',1,'utils.h']]],
+  ['log_5fsim_5ferr_7',['LOG_SIM_ERR',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87ca4e0a07a6107afd3ab6f3dd351478a747',1,'utils.h']]],
+  ['log_5fsim_5finfo_8',['LOG_SIM_INFO',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87ca3fefed678af64996b4dded329b324e8a',1,'utils.h']]],
+  ['log_5fsim_5fwarn_9',['LOG_SIM_WARN',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87cad5da48823e3634afed1f747f09486adb',1,'utils.h']]],
+  ['log_5fss_5fcheckout_10',['LOG_SS_CHECKOUT',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87ca431553fbb80917c59f1f30bbc2baa48c',1,'utils.h']]],
+  ['log_5fstaff_11',['LOG_STAFF',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87ca5ff0b7e42389c6c12d2f663fe98c0cde',1,'utils.h']]],
+  ['log_5ftype_12',['log_type',['../structLogMessage.html#af1ec757da5e9728a04eeeb7aa162aea8',1,'LogMessage']]],
+  ['logger_13',['logger',['../logger_8c.html#a32382986c6aaa8ed1c7a70108a040ad8',1,'logger.c']]],
+  ['logger_2ec_14',['logger.c',['../logger_8c.html',1,'']]],
+  ['logger_2eh_15',['logger.h',['../logger_8h.html',1,'']]],
+  ['logger_5fmessage_16',['logger_message',['../checkout_8c.html#aaa3b2a9e2204b55267ba83f4b637be44',1,'logger_message:&#160;checkout.c'],['../client_8c.html#aaa3b2a9e2204b55267ba83f4b637be44',1,'logger_message:&#160;client.c'],['../main_8c.html#ae15065e7854272e65feb649318053364',1,'logger_message:&#160;main.c'],['../manager_8c.html#a72bb2c7018648b3c554af24043ff381b',1,'logger_message:&#160;manager.c'],['../self__service__checkout_8c.html#aaa3b2a9e2204b55267ba83f4b637be44',1,'logger_message:&#160;self_service_checkout.c']]],
+  ['logger_5fmessage_5fbuf_17',['logger_message_buf',['../checkout_8c.html#ad330def3e2c5aa0796e927a7021e5e93',1,'logger_message_buf:&#160;checkout.c'],['../self__service__checkout_8c.html#ad330def3e2c5aa0796e927a7021e5e93',1,'logger_message_buf:&#160;self_service_checkout.c']]],
+  ['logmessage_18',['LogMessage',['../structLogMessage.html',1,'']]],
+  ['logtype_19',['LogType',['../utils_8h.html#af67907baa897e9fb84df0cb89795b87c',1,'utils.h']]]
+];

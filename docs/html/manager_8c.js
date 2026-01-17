@@ -1,0 +1,27 @@
+var manager_8c =
+[
+    [ "K", "manager_8c.html#a97d832ae23af4f215e801e37e4f94254", null ],
+    [ "close_all_checkouts", "manager_8c.html#a4577e2a5000de7f8f3ff4de497cbad26", null ],
+    [ "do_work", "manager_8c.html#a53de10de8ca6fdcb1c13505a6b97d5f9", null ],
+    [ "main", "manager_8c.html#a0ddf1224851353fc92bfbff6f499fa97", null ],
+    [ "menage_checkouts", "manager_8c.html#a1c3b7f6136d512e0caa3f3c2f056d725", null ],
+    [ "shm_close", "manager_8c.html#ad17956c96cd99e9cb46c8f2874384501", null ],
+    [ "shm_init", "manager_8c.html#a8783f1dc5cba51d08d91b280b1e012a8", null ],
+    [ "active", "manager_8c.html#aa5805c5e936174e5092bf7a5b78e7e64", null ],
+    [ "logger_message", "manager_8c.html#a72bb2c7018648b3c554af24043ff381b", null ],
+    [ "open_checkout", "manager_8c.html#a5e7e13b34de8e5a470b630c0d99f5b49", null ],
+    [ "shm_checkouts", "manager_8c.html#a90786136aef11164f75977185ce57f4c", null ],
+    [ "shm_checkouts_id", "manager_8c.html#af3fd9a88b7d07f42bf54d9ab765c07d5", null ],
+    [ "shm_queues", "manager_8c.html#aa234113b20ddc65d6eaaaa85ed001a5e", null ],
+    [ "shm_queues_id", "manager_8c.html#ad5df889984489cc98399ef7cbc7c5cfe", null ],
+    [ "shm_semaphores", "manager_8c.html#a21c09f3a977fadb86ea650364e5ea24d", null ],
+    [ "shm_semaphores_id", "manager_8c.html#a5f510f9f00d54fcdc53e80a775beb5d2", null ],
+    [ "shm_sim_settings", "manager_8c.html#a418e4cdb0c8a0f0afb561f584fb983d7", null ],
+    [ "shm_sim_settings_id", "manager_8c.html#a4df545e847da1b7e37e638e2eb887245", null ],
+    [ "shm_ss_checkouts", "manager_8c.html#aef21fe9937ca964d3d01f6ed159ba2a2", null ],
+    [ "shm_ss_checkouts_id", "manager_8c.html#a20cdf52186e3813bb120e18ca316d98a", null ],
+    [ "shm_store_data", "manager_8c.html#ab9843598416240b1c84da8938b253c11", null ],
+    [ "shm_store_data_id", "manager_8c.html#a13a233e0542a0b473f6f7c22f2f9a444", null ],
+    [ "status", "manager_8c.html#a3780f16eefd3e26c8e65ff48a0bf6d90", null ],
+    [ "time_end", "manager_8c.html#aff3c57487a0cf4161fe41f0055b64b3f", null ]
+];
