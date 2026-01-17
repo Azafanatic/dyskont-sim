@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-17 11:30+0100\n"
+"POT-Creation-Date: 2026-01-17 16:37+0100\n"
 "PO-Revision-Date: 2026-01-15 17:19+0100\n"
 "Last-Translator: Kacper <kacper@opensuse>\n"
 "Language-Team: English\n"
@@ -17,13 +17,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/checkout.c:48 src/client.c:106 src/main.c:83
-#: src/self_service_checkout.c:49
+#: src/checkout.c:50 src/client.c:122 src/main.c:86
+#: src/self_service_checkout.c:50
 msgid "Fork error\n"
 msgstr "Fork error\n"
 
-#: src/checkout.c:104 src/self_service_checkout.c:98
-
+#: src/checkout.c:119 src/self_service_checkout.c:102
+#, c-format
 msgid ""
 "Hello (%d)!\n"
 "Your shopping list:\n"
@@ -31,12 +31,12 @@ msgstr ""
 "Hello (%d)!\n"
 " Your shopping list:\n"
 
-#: src/checkout.c:132 src/self_service_checkout.c:136
+#: src/checkout.c:149 src/self_service_checkout.c:140
 #, c-format
 msgid "You're only %d years old, I can't sell you that!\n"
 msgstr "You're only %d years old, I can't sell you that!\n"
 
-#: src/checkout.c:145 src/self_service_checkout.c:149
+#: src/checkout.c:162 src/self_service_checkout.c:153
 #, c-format
 msgid ""
 "It'll be: %.2f PLN.\n"
@@ -45,7 +45,7 @@ msgstr ""
 "It'll be: %.2f PLN.\n"
 "Thank you!\n"
 
-#: src/checkout.c:151
+#: src/checkout.c:168
 #, c-format
 msgid ""
 "Receipt\n"
@@ -58,45 +58,59 @@ msgstr ""
 "Checkout ID: %d\n"
 "Items bought:\n"
 
-#: src/checkout.c:155 src/self_service_checkout.c:159
+#: src/checkout.c:172 src/self_service_checkout.c:163
 #, c-format
 msgid "%s - %.2f PLN\n"
 msgstr "%s - %.2f PLN\n"
 
-#: src/checkout.c:161 src/self_service_checkout.c:165
+#: src/checkout.c:178 src/self_service_checkout.c:169
 #, c-format
 msgid "Total: %.2f PLN\n"
 msgstr "Total: %.2f PLN\n"
 
-#: src/client.c:141
+#: src/client.c:154
 #, c-format
 msgid "(%d): Hello!\n"
 msgstr "(%d): Hello!\n"
 
-#: src/client.c:144
+#: src/client.c:157
 #, c-format
 msgid "(%d): I'll buy %d items.\n"
 msgstr "(%d): I'll buy %d items.\n"
 
-#: src/client.c:157
-
-msgid "(%d) I'll get in line for checkout. My number is %d.\n"
-msgstr "(%d): I'll get in line. My number is %d.\n"
-
-#: src/client.c:162
-
-msgid "(%d) I'll get in line for self-service. My number is %d.\n"
-msgstr "(%d): I'll get in line. My number is %d.\n"
-
-#: src/client.c:174
+#: src/client.c:176
 #, c-format
 msgid "(%d): Goodbye!\n"
 msgstr "(%d): Goodbye!\n"
 
-#: src/client.c:176 src/client.c:179
+#: src/client.c:178
 #, c-format
 msgid "(%d): :C\n"
 msgstr "(%d): :C\n"
+
+#: src/client.c:229 src/staff.c:48 src/utils.c:65
+msgid "Msgsnd error\n"
+msgstr "Msgsnd error\n"
+
+#: src/client.c:237
+#, c-format
+msgid "(%d) I'll get in line for checkout. My number is %d.\n"
+msgstr "(%d) I'll get in line for checkout. My number is %d.\n"
+
+#: src/client.c:254
+#, c-format
+msgid "(%d) It's taking too long!\n"
+msgstr "(%d) It's taking too long!\n"
+
+#: src/client.c:273
+#, c-format
+msgid "(%d) I'll get in line for self-service. My number is %d.\n"
+msgstr "(%d) I'll get in line for self-service. My number is %d.\n"
+
+#: src/client.c:298
+#, c-format
+msgid "(%d) Oh! The second checkout has opened!"
+msgstr "(%d) Oh! The second checkout has opened!"
 
 #: src/logger.c:91
 msgid "[INFO] "
@@ -130,11 +144,11 @@ msgstr "[SELF SERVICE CHECKOUT] "
 msgid "[CHECKOUT] "
 msgstr "[CHECKOUT] "
 
-#: src/main.c:57
+#: src/main.c:60
 msgid "Starting the simulation!\n"
 msgstr "Starting the simulation!\n"
 
-#: src/main.c:58
+#: src/main.c:61
 #, c-format
 msgid ""
 "Sim settings:\n"
@@ -143,60 +157,66 @@ msgstr ""
 "Sim settings:\n"
 "Time:%d (sec)\t Speed: %d\n"
 
-#: src/main.c:67
+#: src/main.c:70
 msgid "Path error\n"
 msgstr "Path error\n"
 
-#: src/main.c:87
+#: src/main.c:90
 msgid "Exec error\n"
 msgstr "Exec error\n"
 
-#: src/main.c:96
-
+#: src/main.c:100
+#, c-format
 msgid "Customers in the store: %d\t SSC queue: %d\t SSC open: %d\n"
 msgstr "Customers in the store: %d\t SSC queue: %d\t SSC open: %d\n"
 
-#: src/main.c:100
-
+#: src/main.c:103
+#, c-format
 msgid "Checkout one queue: %d\t Checkout two queue: %d\t Checkouts open: %d\n"
 msgstr "Checkout one queue: %d\t Checkout two queue: %d\t Checkouts open: %d\n"
 
-#: src/main.c:106
+#: src/main.c:109
+msgid "Stopping the simulation...\n"
+msgstr "Stopping the simulation...\n"
+
+#: src/main.c:111
 msgid ""
 "Clients served:\n"
 "Self service checkouts:\n"
 msgstr ""
+"Clients served:\n"
+"Self service checkouts:\n"
 
-#: src/main.c:108 src/main.c:113
-
+#: src/main.c:113 src/main.c:118
+#, c-format
 msgid "(%d) : %d clients.\n"
-msgstr "(%d): I'll buy %d items.\n"
+msgstr "(%d) : %d clients.\n"
 
-#: src/main.c:111
+#: src/main.c:116
 msgid "Checkouts:\n"
-msgstr ""
-
-#: src/main.c:117
-msgid "Stopping the simulation...\n"
-msgstr "Stopping the simulation...\n"
+msgstr "Checkouts:\n"
 
 #: src/manager.c:53
 msgid "Time to open the store!\n"
 msgstr "Time to open the store!\n"
 
-#: src/manager.c:68
-msgid "Closing the store.\n"
-msgstr "Closing the store.\n"
+#: src/manager.c:69
+msgid "Time to evacuate!\n"
+msgstr "Time to evacuate!\n"
 
-#: src/manager.c:86
+#: src/manager.c:77 src/manager.c:101
 msgid "Everyone left the store. The store is now closed.\n"
 msgstr "Everyone left the store. The store is now closed.\n"
 
-#: src/manager.c:87
-msgid "Closing all checkouts...\n"
-msgstr ""
+#: src/manager.c:83
+msgid "Closing the store.\n"
+msgstr "Closing the store.\n"
 
-#: src/self_service_checkout.c:155
+#: src/manager.c:205
+msgid "Closing all checkouts...\n"
+msgstr "Closing all checkouts...\n"
+
+#: src/self_service_checkout.c:159
 #, c-format
 msgid ""
 "Receipt\n"
@@ -209,23 +229,23 @@ msgstr ""
 "Checkout ID: SS_%d\n"
 "Items bought:\n"
 
-#: src/self_service_checkout.c:205
+#: src/self_service_checkout.c:209
 msgid "Invalid product weight"
 msgstr "Invalid product weight"
 
-#: src/self_service_checkout.c:206
+#: src/self_service_checkout.c:210
 msgid "Invalid barcode"
 msgstr "Invalid barcode"
 
-#: src/self_service_checkout.c:207
+#: src/self_service_checkout.c:211
 msgid "Payment problem"
 msgstr "Payment problem"
 
-#: src/self_service_checkout.c:208
+#: src/self_service_checkout.c:212
 msgid "Other error"
 msgstr "Other error"
 
-#: src/self_service_checkout.c:220
+#: src/self_service_checkout.c:224
 #, c-format
 msgid "Staff assistance required: %s\n"
 msgstr "Staff assistance required: %s\n"
@@ -244,10 +264,6 @@ msgstr "Self service checkout %d unblocked.\n"
 #, c-format
 msgid "Verifying client %d... They are %d yo.\n"
 msgstr "Verifying client %d... They are %d yo.\n"
-
-#: src/staff.c:48 src/utils.c:65 src/utils.c:90
-msgid "Msgsnd error\n"
-msgstr "Msgsnd error\n"
 
 #: src/staff.c:51
 #, c-format
@@ -274,11 +290,11 @@ msgstr "Semop signal error\n"
 msgid "Msgctl error\n"
 msgstr "Msgctl error\n"
 
-#: src/utils.c:132 src/utils.c:181
+#: src/utils.c:117 src/utils.c:166
 msgid "Shmget error\n"
 msgstr "Shmget error\n"
 
-#: src/utils.c:138 src/utils.c:187
+#: src/utils.c:123 src/utils.c:172
 msgid "Shmat error\n"
 msgstr "Shmat error\n"
 

@@ -50,3 +50,5 @@ locale/
 en.mo
 pl.mo
 messages.pot
+
+cleanupipc.sh

@@ -295,7 +295,7 @@ void choose_checkout()
     leave_the_queue(client.id, msq);
 
     sprintf(logger_message,
-        _("(%d) Oh! The second checkout is open!\n"),
+        _("(%d) Oh! The second checkout has opened!\n"),
         client.id);
     save_a_log(LOG_SIM_WARN, logger_message, shm_queues->msq_logger);
 
