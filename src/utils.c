@@ -94,6 +94,24 @@ void operation_signal(int semID)
     }
 }
 
+void wait_if_queue_near_full(int msq_id, size_t msg_size)
+{
+    struct msqid_ds buf;
+
+    while (1) {
+        if (msgctl(msq_id, IPC_STAT, &buf) == -1)
+            return;
+
+        double usage = (double)buf.__msg_cbytes / (double)buf.msg_qbytes;
+
+        if (usage < QUEUE_LIMIT)
+            return;
+
+        usleep(WAIT_USEC);
+    }
+}
+
+
 /** @brief Saves a log message */
 void save_a_log(LogType log_type, const char* format, int msq_id)
 {
@@ -107,8 +125,10 @@ void save_a_log(LogType log_type, const char* format, int msq_id)
     strncpy(msg.message, format, sizeof(msg.message) - 1);
     msg.message[sizeof(msg.message) - 1] = '\0';
 
+    wait_if_queue_near_full(msq_id, sizeof(msg) - sizeof(long));
+
     if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
-        perror(_("msgsnd error"));
+        perror("msgsnd error");
     }
 }
 

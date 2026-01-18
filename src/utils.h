@@ -15,10 +15,13 @@
 
 #define IPC_KEY_FILE "/tmp/dyskont_sim.ipc"
 
+#define QUEUE_LIMIT 0.7
+#define WAIT_USEC   5000
+
 #define MAX_SIM_LENGTH 86400
 #define MAX_SIM_SPEED 1800
 #define MAIN_PROCESSES 6
-#define MAX_CLIENTS 128
+#define MAX_CLIENTS 256
 #define MIN_PRODUCTS 3
 #define MAX_PRODUCTS 10
 #define PRODUCTS_AVAILABLE 32
@@ -274,5 +277,7 @@ int queue_length(int msq_id);
 /** @brief Initializes internationalization
  */
 void init_i18n();
+
+void wait_if_queue_near_full(int msq_id, size_t msg_size);
 
 #endif

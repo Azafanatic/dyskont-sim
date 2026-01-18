@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
         operation_signal(shm_semaphores->sem_store_data);
 
         wait_time = ((6 + (cos(time(NULL) * 10) + 1) * 5 + (rand() % 7)) * 150000) / shm_sim_settings->sim_speed;
-        usleep(wait_time * 2);
+        usleep(wait_time * 0.5);
     }
 
     shm_close();
@@ -234,16 +234,22 @@ void pick_a_queue()
 /** @brief Stands in the queue */
 void stand_in_the_queue(Client client, int msq_id)
 {
+    struct msqid_ds buf;
+
+    if (msgctl(msq_id, IPC_STAT, &buf) == -1) {
+        perror(_("msgctl IPC_STAT error"));
+    }
+
+    int max_size = (buf.msg_qbytes / sizeof(ClientMessage)) - 20;
+
     if (msq_id == -1)
         return;
-
-    while (queue_length(msq_id) >= 100) {
-        usleep(10000000 / shm_sim_settings->sim_speed);
-    }
 
     ClientMessage msg;
     msg.message_type = 1;
     msg.client = client;
+
+    wait_if_queue_near_full(msq_id, sizeof(msg) - sizeof(long));
 
     if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
         perror(_("Msgsnd error\n"));
