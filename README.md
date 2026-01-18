@@ -2,9 +2,9 @@
 
 **Po okazaniu projektu zostały poprawione 3 rzeczy:**
 
-1. Procesy czekają zamknięcie się dzieci
-2. Kolejki do kas i do logera są lepiej zabezpieczone przed przepełnieniem
-3. Kierownik używa własnego czasu, co zapobiega przedwczesnemu kończeniu symulacji
+1. Procesy czekają na zamknięcie się dzieci.
+2. Kolejki do kas i do loggera są lepiej zabezpieczone przed przepełnieniem.
+3. Kierownik używa własnego czasu, co zapobiega przedwczesnemu zakończeniu symulacji.
 
 ## 1. Użyty soft
 
