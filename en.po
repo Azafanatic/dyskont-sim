@@ -240,12 +240,6 @@ msgstr "(%d) : %d clients.\n"
 msgid "Checkouts:\n"
 msgstr "Checkouts:\n"
 
-#: src/main.c:209 src/main.c:215 src/main.c:221 src/main.c:227 src/main.c:233
-#: src/main.c:239 src/main.c:245 src/main.c:251
-
-msgid "Msgctl error\n"
-msgstr "Msgctl error\n"
-
 #: src/main.c:271 src/main.c:274 src/main.c:277 src/main.c:280 src/main.c:283
 #: src/main.c:286 src/main.c:289 src/main.c:292 src/utils.c:86
 msgid "Msgctl error\n"
