@@ -144,6 +144,9 @@ int main(int argc, char* argv[])
         usleep(wait_time * 1.5);
     }
 
+    for (int i = 0; i < active; i++) {
+        waitpid(pids[i], NULL, 0);
+    }
     shm_close();
 
     exit(0);

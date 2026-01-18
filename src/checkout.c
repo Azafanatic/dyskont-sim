@@ -74,6 +74,10 @@ int main(int argc, char* argv[])
         usleep(10000000. / shm_sim_settings->sim_speed);
     }
 
+    for (int i = 0; i < MAX_CHECKOUTS; i++) {
+        waitpid(pids[i], NULL, 0);
+    }
+
     shm_close();
     exit(0);
 }
