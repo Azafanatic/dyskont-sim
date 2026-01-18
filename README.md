@@ -1,5 +1,11 @@
 # Symulacja dyskontu
 
+**Po okazaniu projektu zostały poprawione 3 rzeczy:**
+
+1. Procesy czekają zamknięcie się dzieci
+2. Kolejki do kas i do logera są lepiej zabezpieczone przed przepełnieniem
+3. Kierownik używa własnego czasu, co zapobiega przedwczesnemu kończeniu symulacji
+
 ## 1. Użyty soft
 
 | Kat.             | Nazwa                        |
@@ -47,7 +53,6 @@ chmod +x buildnrun.sh
 * Użycie `fork()` i `exec()`
 
 ## 5. Opis kodu
-
 ### sim (main.c)
 
 Program główny, odpowiada za:
@@ -59,25 +64,27 @@ Program główny, odpowiada za:
 * powiadomienie innych programów o konieczności zakończenia działania,
 * usunięcie pamięci dzielonej, kolejek i semaforów.
 
+Jest to w zasadzie program czuwający nad rozpoczęciem i zakończeniem symulacji.
+
 ### utils.c / utils.h
 
-Zawiera definicje kluczy, domyślnych wartości oraz struktur. Ustawia też domyślne wartości dla języka. Posiada funkcje potrzebne w wielu miejscach, takie jak podłączanie pamięci, zapisywanie logów czy inicjalizacja tłumaczenia.
+Zawiera definicje kluczy, domyślnych wartości oraz struktur. Ustawia też domyślne wartości dla języka. Posiada funkcje potrzebne w wielu miejscach, takie jak podłączanie pamięci, zapisywanie logów, sprawdzanie długości kolejek czy inicjalizacja tłumaczenia.
 
 ### logger.c / logger.h
 
-Pozwala zapisywać, w kolejności wykonywania funkcji, kolorowe logi, które wyświetlają się zarówno na wyjściu standardowym, jak i są zapisywane do pliku.
+Pozwala zapisywać, w kolejności wykonywania funkcji, kolorowe logi, które wyświetlają się zarówno na wyjściu standardowym, jak i są zapisywane do pliku. Robi to za pomocą kolejki komunikatów, do której logi dodawane są przez użycie save_a_log().
 
 ### manager.c
 
-Otwiera i zamyka sklep. Decyduje też, kiedy jakie kasy należy otworzyć, oraz przeprowadza (jeśli jest taka potrzeba) ewakuację.
+Otwiera i zamyka sklep, decyduje też, kiedy jakie kasy należy otworzyć oraz przeprowadza (jeśli jest taka potrzeba) ewakuację.
 
 ### checkout.c
 
-Program dzieli się na pętlę główną oraz `MAX_CHECKOUTS` procesów kas. Następnie czeka na zakończenie programu, aż będzie mógł odpiąć pamięć współdzieloną. Kasy stacjonarne same sprawdzają wiek klienta w przypadku próby kupienia alkoholu i nie zacinają się. Jeśli są otwarte, odczytują klientów z kolejki i wystawiają im paragony, jeśli transakcja przebiegnie pomyślnie.
+Program uruchamia MAX_CHECKOUTS procesów kas. Główna pętla czeka na zakończenie programu, aż będzie mogła odpiąć pamięć współdzieloną. Kasy stacjonarne same sprawdzają wiek klienta w przypadku próby kupienia alkoholu i nie zacinają się. Jeśli są otwarte, odczytują klientów z kolejki i wystawiają im paragony, jeśli transakcja przebiegnie pomyślnie.
 
 ### self_service_checkout.c
 
-Kasy samoobsługowe działają podobnie jak stacjonarne, z tym że w przypadku problemów wysyłają wiadomość do procesu obsługi i czekają na odpowiedź.
+Kasy samoobsługowe działają podobnie jak stacjonarne, z tym że w przypadku problemów wysyłają, przy pomocy kolejki komunikatów, wiadomość do procesu obsługi i czekają na odpowiedź. Kiedy ją otrzymają, decydują, czy wystawić klientowi paragon, czy odmówić zakupów.
 
 ### staff.c
 
@@ -101,6 +108,69 @@ Kasy są otwierane i zamykane zgodnie z następującymi zasadami:
 * Kasy stacjonarne zamykają się po 30 s od obsłużenia wszystkich klientów
 * Pozostałe kasy (samoobsługowe: od 4 do `MAX_SS_CHECKOUTS`, stacjonarne: od 2) otwierają się kolejno, gdy zajdzie taka potrzeba (min. jedna kasa na K klientów)
 * Zamykają się, gdy liczba klientów spadnie poniżej `K · (N − 3)`
+
+```sh
+FUNKCJA menage_checkouts
+    UTWÓRZ tablicę prev_open_checkout
+    DLA każdego checkoutu
+        zapamiętaj poprzedni stan otwarcia
+
+    // Wyznaczenie liczby aktywnych kas
+    active ← floor(liczba_klientów / K)
+
+    JEŻELI liczba_klientów < K · (active − 3)
+        active ← active − 1
+
+    JEŻELI active < 3
+        active ← 3
+
+    JEŻELI active > maksymalna_liczba_kas
+        active ← maksymalna_liczba_kas
+
+    // Sterowanie pierwszą kasą tradycyjną na podstawie kolejki
+    JEŻELI długość_kolejki > 3
+        otwórz pierwszą kasę tradycyjną
+    WPP JEŻELI długość_kolejki = 0
+        zamknij pierwszą kasę tradycyjną
+
+    // Otwieranie odpowiedniej liczby kas
+    i ← 0
+    DOPÓKI active > 0
+        JEŻELI kasa[i] jest zamknięta
+            otwórz kasę[i]
+        active ← active − 1
+        i ← i + 1
+
+    // Sekcja krytyczna
+    ZABLOKUJ semafor kas
+
+    // Aktualizacja kas samoobsługowych
+    DLA każdej kasy samoobsługowej
+        JEŻELI jej stan się zmienił
+            zapisz nowy stan do pamięci współdzielonej
+
+    // Aktualizacja kas tradycyjnych
+    DLA każdej kasy tradycyjnej
+        JEŻELI jej stan się zmienił
+            JEŻELI kasa została otwarta
+                wyślij sygnał OTWARCIA
+            WPP JEŻELI kasa została zamknięta ORAZ
+                minął odpowiedni czas od ostatniego klienta
+                wyślij sygnał ZAMKNIĘCIA
+
+    // Zliczanie otwartych kas samoobsługowych
+    policz otwarte kasy samoobsługowe
+    zapisz wynik do pamięci współdzielonej
+
+    // Zliczanie otwartych kas tradycyjnych
+    policz otwarte kasy tradycyjne
+    zapisz wynik do pamięci współdzielonej
+
+    ODBLOKUJ semafor kas
+
+KONIEC FUNKCJI
+
+```
 
 ### Obsługa błędów
 
