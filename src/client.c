@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
         operation_signal(shm_semaphores->sem_store_data);
 
         wait_time = ((6 + (cos(time(NULL) * 10) + 1) * 5 + (rand() % 7)) * 150000) / shm_sim_settings->sim_speed;
-        usleep(wait_time * 0.5);
+        usleep(wait_time * 1.5);
     }
 
     shm_close();
