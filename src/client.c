@@ -234,28 +234,39 @@ void pick_a_queue()
 /** @brief Stands in the queue */
 void stand_in_the_queue(Client client, int msq_id)
 {
-    struct msqid_ds buf;
-
-    if (msgctl(msq_id, IPC_STAT, &buf) == -1) {
-        perror(_("msgctl IPC_STAT error"));
-    }
-
-    int max_size = (buf.msg_qbytes / sizeof(ClientMessage)) - 20;
-
     if (msq_id == -1)
         return;
+
+    struct msqid_ds buf;
+    int max_msgs;
+    int current_msgs;
+
+    while (1) {
+        if (msgctl(msq_id, IPC_STAT, &buf) == -1) {
+            perror(_("msgctl IPC_STAT error"));
+            return;
+        }
+
+        max_msgs = buf.msg_qbytes / sizeof(ClientMessage);
+        current_msgs = buf.msg_qnum;
+
+        if (current_msgs < (int)(0.7 * max_msgs)) {
+            break;
+        }
+
+        usleep(100000 / shm_sim_settings->sim_speed);
+    }
 
     ClientMessage msg;
     msg.message_type = 1;
     msg.client = client;
-
-    wait_if_queue_near_full(msq_id, sizeof(msg) - sizeof(long));
 
     if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
         perror(_("Msgsnd error\n"));
         return;
     }
 }
+
 
 /** @brief Chooses self-service checkout */
 void choose_ss_checkout()

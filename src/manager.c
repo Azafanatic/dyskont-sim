@@ -13,7 +13,11 @@
 #define K 10.0
 
 /** @brief End time */
-time_t time_end;
+useconds_t time_end;
+/** @brief Time elapsed */
+useconds_t time_elapsed;
+/** @brief Time jump */
+useconds_t time_jump;
 
 /** @brief Shared memory IDs */
 int shm_sim_settings_id;
@@ -60,7 +64,15 @@ int main(int argc, char* argv[])
 /** @brief Performs manager work */
 void do_work()
 {
-    time_end = time(NULL) + (time_t)ceil(shm_sim_settings->sim_length / (double)shm_sim_settings->sim_speed);
+    time_elapsed = 0;
+    time_end =
+    (useconds_t)ceil(
+        (shm_sim_settings->sim_length * 1000000.0) /
+        shm_sim_settings->sim_speed
+    );
+
+    time_jump =
+    (useconds_t)(10.0 * 1000000 / shm_sim_settings->sim_speed);
 
     save_a_log(LOG_MANAGER, _("Time to open the store!\n"), shm_queues->msq_logger);
 
@@ -70,11 +82,12 @@ void do_work()
 
     usleep(300000);
 
-    while (time(NULL) < time_end) {
+    while (time_elapsed < time_end) {
 
         menage_checkouts();
 
-        usleep(10.0 * 1000000 / shm_sim_settings->sim_speed);
+        usleep(time_jump);
+        time_elapsed += time_jump;
     }
 
     if (shm_sim_settings->evacuation) {

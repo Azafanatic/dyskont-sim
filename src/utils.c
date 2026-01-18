@@ -118,6 +118,26 @@ void save_a_log(LogType log_type, const char* format, int msq_id)
     if (msq_id == -1)
         return;
 
+    struct msqid_ds buf;
+    int max_msgs;
+    int current_msgs;
+
+    while (1) {
+        if (msgctl(msq_id, IPC_STAT, &buf) == -1) {
+            perror("msgctl IPC_STAT error");
+            return;
+        }
+
+        max_msgs = buf.msg_qbytes / sizeof(LogMessage);
+        current_msgs = buf.msg_qnum;
+
+        if (current_msgs < (int)(0.7 * max_msgs)) {
+            break;
+        }
+
+        usleep(100);
+    }
+
     LogMessage msg;
     msg.message_type = 1;
     msg.log_type = log_type;
@@ -125,12 +145,11 @@ void save_a_log(LogType log_type, const char* format, int msq_id)
     strncpy(msg.message, format, sizeof(msg.message) - 1);
     msg.message[sizeof(msg.message) - 1] = '\0';
 
-    wait_if_queue_near_full(msq_id, sizeof(msg) - sizeof(long));
-
     if (msgsnd(msq_id, &msg, sizeof(msg) - sizeof(long), 0) == -1) {
         perror("msgsnd error");
     }
 }
+
 
 /** @brief Gets queue length */
 int queue_length(int msq_id)
