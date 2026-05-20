@@ -33,6 +33,12 @@ sudo transactional-update run zypper install git gh gcc cmake make
 sudo transactional-update run zypper install -t pattern devel_basis
 ```
 
+### Fedora
+
+```sh
+sudo dnf install glibc-devel libstdc++-devel git gh cmake make gcc gcc-c++ gettext-devel -y
+```
+
 ## 3. Budowanie
 
 ```sh
@@ -61,7 +67,7 @@ Program główny, odpowiada za:
 * ustawienie wartości domyślnych,
 * walidację danych,
 * uruchomienie innych programów,
-* powiadomienie innych programów o konieczności zakończenia działania,
+* powiadomienie innych programdnf install glibc-devel libstdc++-devel git gh cmake make gcc gcc-c++ gettext-devel -yów o konieczności zakończenia działania,
 * usunięcie pamięci dzielonej, kolejek i semaforów.
 
 Jest to w zasadzie program czuwający nad rozpoczęciem i zakończeniem symulacji.
