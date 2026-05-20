@@ -39,7 +39,7 @@ sudo transactional-update run zypper install -t pattern devel_basis
 gh repo clone Azafanatic/dyskont-sim
 cd dyskont-sim
 chmod +x buildnrun.sh
-./buildnrun.sh
+./build.sh
 ```
 
 ## 4. Wymagania
